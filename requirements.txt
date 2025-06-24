@@ -1,0 +1,10 @@
+flask
+flask-cors
+anthropic
+pypdf
+sentence-transformers
+faiss-cpu
+python-dotenv
+langchain
+langchain-anthropic
+numpy
