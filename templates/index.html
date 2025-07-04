@@ -3,112 +3,1258 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Learning Assistant - PDF Chatbot</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <title>Adaptive Learning Assistant - Enhanced</title>
+    <style>
+        :root {
+            --primary-color: #5e72e4;
+            --secondary-color: #2dce89;
+            --warning-color: #fb6340;
+            --info-color: #11cdef;
+            --dark: #32325d;
+            --light: #f7f8fc;
+            --text-primary: #32325d;
+            --text-secondary: #8898aa;
+            --border-color: #dee2e6;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, var(--light) 0%, #e9ecef 100%);
+            color: var(--text-primary);
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 2rem;
+            animation: fadeIn 0.8s ease-out;
+        }
+
+        header h1 {
+            font-size: 2.5rem;
+            color: var(--primary-color);
+            margin-bottom: 0.5rem;
+            background: linear-gradient(135deg, var(--primary-color), var(--info-color));
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        header p {
+            color: var(--text-secondary);
+            font-size: 1.1rem;
+        }
+
+        .main-content {
+            display: grid;
+            grid-template-columns: 400px 1fr;
+            gap: 2rem;
+            animation: slideUp 0.8s ease-out;
+        }
+
+        .sidebar {
+            background: white;
+            border-radius: 15px;
+            padding: 2rem;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            height: fit-content;
+            max-height: calc(100vh - 150px);
+            overflow-y: auto;
+        }
+
+        .sidebar::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .sidebar::-webkit-scrollbar-track {
+            background: var(--light);
+            border-radius: 3px;
+        }
+
+        .sidebar::-webkit-scrollbar-thumb {
+            background: var(--border-color);
+            border-radius: 3px;
+        }
+
+        .topic-selector {
+            margin-bottom: 2rem;
+        }
+
+        .topic-card {
+            background: var(--light);
+            border: 2px solid transparent;
+            border-radius: 10px;
+            padding: 1.5rem;
+            margin-bottom: 1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .topic-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        .topic-card.selected {
+            border-color: var(--primary-color);
+            background: linear-gradient(135deg, rgba(94,114,228,0.1), rgba(17,205,239,0.1));
+        }
+
+        .topic-card h3 {
+            color: var(--dark);
+            margin-bottom: 0.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .topic-icon {
+            width: 30px;
+            height: 30px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+        }
+
+        .math-icon {
+            background: linear-gradient(135deg, var(--primary-color), var(--info-color));
+            color: white;
+        }
+
+        .bio-icon {
+            background: linear-gradient(135deg, var(--secondary-color), #20c997);
+            color: white;
+        }
+
+        .index-info {
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+            margin-top: 0.5rem;
+        }
+
+        .academic-selector {
+            background: var(--light);
+            padding: 1.5rem;
+            border-radius: 10px;
+            margin-bottom: 1.5rem;
+        }
+
+        .academic-selector h3 {
+            margin-bottom: 1rem;
+            color: var(--dark);
+            font-size: 1.1rem;
+        }
+
+        .selector-grid {
+            display: grid;
+            gap: 1rem;
+        }
+
+        .selector-group {
+            margin-bottom: 1rem;
+        }
+
+        .selector-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+            color: var(--text-primary);
+            font-size: 0.9rem;
+        }
+
+        .selector-group select {
+            width: 100%;
+            padding: 0.6rem 1rem;
+            border: 2px solid var(--border-color);
+            border-radius: 8px;
+            background: white;
+            color: var(--text-primary);
+            font-size: 0.95rem;
+            transition: all 0.2s ease;
+        }
+
+        .selector-group select:focus {
+            outline: none;
+            border-color: var(--primary-color);
+        }
+
+        .subtopic-selector {
+            margin-top: 1rem;
+            padding: 1rem;
+            background: var(--light);
+            border-radius: 8px;
+        }
+
+        .subtopic-selector h3 {
+            margin-bottom: 1rem;
+            color: var(--dark);
+            font-size: 1rem;
+        }
+
+        .subtopic-options {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+        }
+
+        .subtopic-btn {
+            padding: 0.5rem 1rem;
+            border: 2px solid var(--border-color);
+            background: white;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 0.85rem;
+            transition: all 0.2s ease;
+            white-space: nowrap;
+        }
+
+        .subtopic-btn:hover {
+            border-color: var(--info-color);
+            background: rgba(17, 205, 239, 0.1);
+        }
+
+        .subtopic-btn.selected {
+            background: var(--info-color);
+            color: white;
+            border-color: var(--info-color);
+        }
+
+        .method-preferences {
+            margin-top: 1rem;
+            padding: 1rem;
+            background: rgba(94, 114, 228, 0.05);
+            border-radius: 8px;
+            border: 1px solid rgba(94, 114, 228, 0.2);
+        }
+
+        .method-preferences h4 {
+            margin-bottom: 0.5rem;
+            color: var(--primary-color);
+            font-size: 0.9rem;
+        }
+
+        .method-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.3rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .method-tag {
+            padding: 0.3rem 0.6rem;
+            background: white;
+            border: 1px solid var(--primary-color);
+            border-radius: 15px;
+            font-size: 0.75rem;
+            color: var(--primary-color);
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .method-tag:hover,
+        .method-tag.selected {
+            background: var(--primary-color);
+            color: white;
+        }
+
+        .chat-area {
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            display: flex;
+            flex-direction: column;
+            height: calc(100vh - 150px);
+        }
+
+        .chat-header {
+            padding: 1.5rem;
+            border-bottom: 1px solid var(--border-color);
+            background: linear-gradient(135deg, var(--light), white);
+            border-radius: 15px 15px 0 0;
+        }
+
+        .current-context {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+        }
+
+        .context-badge {
+            padding: 0.4rem 0.8rem;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 500;
+        }
+
+        .topic-badge {
+            background: var(--primary-color);
+            color: white;
+        }
+
+        .grade-badge {
+            background: var(--secondary-color);
+            color: white;
+        }
+
+        .board-badge {
+            background: var(--warning-color);
+            color: white;
+        }
+
+        .subtopic-badge {
+            background: var(--info-color);
+            color: white;
+        }
+
+        .performance-tracker {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            background: rgba(255, 255, 255, 0.9);
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .performance-metric {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .performance-metric span {
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+        }
+
+        .performance-metric strong {
+            font-size: 1.1rem;
+            color: var(--primary-color);
+        }
+
+        .chat-messages {
+            flex: 1;
+            overflow-y: auto;
+            padding: 2rem;
+            scroll-behavior: smooth;
+        }
+
+        .message {
+            margin-bottom: 1.5rem;
+            animation: fadeIn 0.5s ease-out;
+        }
+
+        .message.user {
+            text-align: right;
+        }
+
+        .message-content {
+            display: inline-block;
+            max-width: 80%;
+            padding: 1rem 1.5rem;
+            border-radius: 15px;
+            line-height: 1.6;
+        }
+
+        .message.user .message-content {
+            background: var(--primary-color);
+            color: white;
+            border-radius: 15px 15px 0 15px;
+        }
+
+        .message.assistant .message-content {
+            background: var(--light);
+            color: var(--text-primary);
+            border-radius: 15px 15px 15px 0;
+        }
+
+        .message-meta {
+            margin-top: 0.5rem;
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+        }
+
+        .content-info {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.3rem;
+            margin-top: 0.3rem;
+        }
+
+        .content-tag {
+            display: inline-block;
+            padding: 0.2rem 0.5rem;
+            background: var(--info-color);
+            color: white;
+            border-radius: 10px;
+            font-size: 0.7rem;
+        }
+
+        .chat-input-area {
+            padding: 1.5rem;
+            border-top: 1px solid var(--border-color);
+            background: var(--light);
+            border-radius: 0 0 15px 15px;
+        }
+
+        .chat-controls {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .control-btn {
+            padding: 0.5rem 1rem;
+            background: white;
+            border: 1px solid var(--border-color);
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 0.85rem;
+            transition: all 0.2s ease;
+        }
+
+        .control-btn:hover {
+            background: var(--primary-color);
+            color: white;
+            border-color: var(--primary-color);
+        }
+
+        .control-btn.active {
+            background: var(--primary-color);
+            color: white;
+            border-color: var(--primary-color);
+        }
+
+        .chat-form {
+            display: flex;
+            gap: 1rem;
+        }
+
+        .chat-input {
+            flex: 1;
+            padding: 0.8rem 1.2rem;
+            border: 2px solid var(--border-color);
+            border-radius: 25px;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+
+        .chat-input:focus {
+            outline: none;
+            border-color: var(--primary-color);
+        }
+
+        .send-btn {
+            padding: 0.8rem 1.5rem;
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .send-btn:hover {
+            background: #4c63d2;
+            transform: translateY(-1px);
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 2rem;
+        }
+
+        .loading.active {
+            display: block;
+        }
+
+        .loading-spinner {
+            width: 40px;
+            height: 40px;
+            border: 4px solid var(--light);
+            border-top: 4px solid var(--primary-color);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 1rem;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        @media (max-width: 1024px) {
+            .main-content {
+                grid-template-columns: 1fr;
+            }
+            
+            .sidebar {
+                max-height: none;
+            }
+            
+            .chat-area {
+                height: 600px;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 1rem;
+            }
+            
+            .message-content {
+                max-width: 90%;
+            }
+        }
+    </style>
 </head>
 <body>
     <div class="container">
         <header>
-            <h1>Learning Assistant</h1>
-            <p>Ask questions about specific chapters or pages in the document</p>
+            <h1>🎓 Adaptive Learning Assistant</h1>
+            <p>Personalized education with comprehensive metadata-driven content</p>
         </header>
-        
-        <div class="document-selector">
-            <div class="pdf-info">
-                <h3>{{ pdf_info.title }}</h3>
-                <p>Total Pages: {{ pdf_info.total_pages }}</p>
-                {% if pdf_info.author != "Unknown" %}
-                <p>Author: {{ pdf_info.author }}</p>
-                {% endif %}
-            </div>
-            
-            <div class="selection-tabs">
-                <div class="tab-buttons">
-                    <button id="chapter-tab-btn" class="tab-btn active">Browse by Chapter</button>
-                    <button id="page-tab-btn" class="tab-btn">Browse by Page</button>
-                </div>
-                
-                <div id="chapter-tab" class="tab-content active">
-                    <h3>Select a Chapter</h3>
-                    
-                    <div class="chapter-list">
-                        {% if chapters %}
-                            {% set current_unit = "" %}
-                            {% for chapter in chapters %}
-                                {% if chapter.unit != current_unit %}
-                                    {% if current_unit != "" %}
-                                        </div> <!-- Close previous unit -->
-                                    {% endif %}
-                                    <div class="unit-section">
-                                        <h4 class="unit-heading">{{ chapter.unit }}</h4>
-                                    {% set current_unit = chapter.unit %}
-                                {% endif %}
-                                
-                                <div class="chapter-item" data-chapter="{{ chapter.chapter_number }}">
-                                    <h5>{{ chapter.chapter_number }}. {{ chapter.title }}</h5>
-                                    <p class="chapter-pages">Pages: {{ chapter.page_range }}</p>
-                                </div>
-                                
-                                {% if loop.last %}
-                                    </div> <!-- Close last unit -->
-                                {% endif %}
-                            {% endfor %}
-                        {% else %}
-                            <p class="no-chapters">No chapters were detected in this document.</p>
-                        {% endif %}
+
+        <div class="main-content">
+            <div class="sidebar">
+                <div class="topic-selector">
+                    <h3>Choose a Topic</h3>
+                    <div class="topic-card" data-topic="quadratic_equations" data-index="math_index" data-namespace="algebra_quadratic_equations">
+                        <h3>
+                            <span class="topic-icon math-icon">∑</span>
+                            Quadratic Equations
+                        </h3>
+                        <p>Master quadratic equations with adaptive learning</p>
+                        <div class="index-info">Index: math_index | Namespace: algebra_quadratic_equations</div>
+                    </div>
+                    <div class="topic-card" data-topic="digestive_system" data-index="science_index" data-namespace="biology_digestive_system">
+                        <h3>
+                            <span class="topic-icon bio-icon">🧬</span>
+                            Digestive System
+                        </h3>
+                        <p>Explore human digestion with grade-appropriate content</p>
+                        <div class="index-info">Index: science_index | Namespace: biology_digestive_system</div>
                     </div>
                 </div>
-                
-                <div id="page-tab" class="tab-content">
-                    <h3>Select Page Range</h3>
-                    <div class="range-inputs">
-                        <div class="input-group">
-                            <label for="start-page">Start Page:</label>
-                            <input type="number" id="start-page" min="1" max="{{ pdf_info.total_pages }}" value="1">
+
+                <div class="academic-selector" style="display: none;">
+                    <h3>Academic Details</h3>
+                    <div class="selector-grid">
+                        <div class="selector-group">
+                            <label for="board-select">Board</label>
+                            <select id="board-select">
+                                <option value="">Select Board</option>
+                                <option value="CBSE">CBSE (Central Board)</option>
+                                <option value="ICSE">ICSE (CISCE Board)</option>
+                                <option value="SSC">SSC (Maharashtra Board)</option>
+                            </select>
                         </div>
-                        <div class="input-group">
-                            <label for="end-page">End Page:</label>
-                            <input type="number" id="end-page" min="1" max="{{ pdf_info.total_pages }}" value="{{ pdf_info.total_pages }}">
+                        
+                        <div class="selector-group">
+                            <label for="grade-select">Grade</label>
+                            <select id="grade-select">
+                                <option value="">Select Grade</option>
+                                <option value="3">Grade 3</option>
+                                <option value="4">Grade 4</option>
+                                <option value="5">Grade 5</option>
+                                <option value="6">Grade 6</option>
+                                <option value="7">Grade 7</option>
+                                <option value="8">Grade 8</option>
+                                <option value="9">Grade 9</option>
+                                <option value="10">Grade 10</option>
+                                <option value="11">Grade 11</option>
+                                <option value="12">Grade 12</option>
+                            </select>
+                        </div>
+                        
+                        <div class="selector-group">
+                            <label for="language-select">Language</label>
+                            <select id="language-select">
+                                <option value="english">English</option>
+                                <option value="hindi">Hindi</option>
+                                <option value="marathi">Marathi (SSC)</option>
+                            </select>
                         </div>
                     </div>
-                    <div class="input-group section-title">
-                        <label for="section-title">Section Title (optional):</label>
-                        <input type="text" id="section-title" placeholder="E.g., Introduction, Chapter 1, etc.">
+                </div>
+
+                <div class="subtopic-selector" style="display: none;">
+                    <h3>Focus Area</h3>
+                    <div class="subtopic-options" id="subtopic-options">
+                        <!-- Dynamically populated based on topic -->
                     </div>
                 </div>
-            </div>
-        </div>
-        
-        <div class="context-indicator">
-            <p>Currently browsing: <span id="context-text">No selection</span></p>
-        </div>
-        
-        <div class="chat-container">
-            <div id="chat-messages" class="chat-messages">
-                <div class="message assistant">
-                    <div class="message-content">
-                        Hello! I'm your learning assistant. Please select a chapter or page range from the left panel, then ask me a question about the content.
+
+                <div class="method-preferences" style="display: none;">
+                    <h4>Learning Preferences</h4>
+                    <div class="method-tags" id="method-tags">
+                        <!-- Dynamically populated based on topic and subtopic -->
+                    </div>
+                    <div style="margin-top: 0.5rem;">
+                        <label style="font-size: 0.8rem; color: var(--text-secondary);">
+                            <input type="checkbox" id="exclude-advanced"> Exclude advanced methods
+                        </label>
                     </div>
                 </div>
-            </div>
-            
-            <div id="loading-indicator" class="loading-indicator">
-                <div class="loading-spinner"></div>
-                <p>Thinking...</p>
-            </div>
-            
-            <form id="chat-form" class="chat-input">
-                <input type="text" id="user-input" placeholder="Ask a question about the selected content..." autocomplete="off">
-                <button type="submit">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <line x1="22" y1="2" x2="11" y2="13"></line>
-                        <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
-                    </svg>
+
+                <button class="control-btn" id="learning-path-btn" style="width: 100%; margin-top: 1rem; display: none;">
+                    📚 View Learning Path
                 </button>
-            </form>
+            </div>
+
+            <div class="chat-area">
+                <div class="chat-header">
+                    <div class="current-context">
+                        <span>Current Context:</span>
+                        <span class="context-badge topic-badge" id="selected-topic">No topic selected</span>
+                        <span class="context-badge grade-badge" id="selected-grade" style="display: none;">Grade -</span>
+                        <span class="context-badge board-badge" id="selected-board" style="display: none;">Board -</span>
+                        <span class="context-badge subtopic-badge" id="selected-subtopic" style="display: none;">All subtopics</span>
+                    </div>
+                    
+                    <div class="performance-tracker" id="performance-tracker" style="display: none;">
+                        <div class="performance-metric">
+                            <span>Mastery</span>
+                            <strong id="mastery-level">75%</strong>
+                        </div>
+                        <div class="performance-metric">
+                            <span>Questions</span>
+                            <strong id="question-count">0</strong>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="chat-messages" id="chat-messages">
+                    <div class="message assistant">
+                        <div class="message-content">
+                            👋 Welcome to the Enhanced Adaptive Learning System! 
+                            <br><br>
+                            Select a topic and configure your academic details to get started. 
+                            I'll provide personalized content based on your grade, board, and learning preferences.
+                        </div>
+                    </div>
+                </div>
+
+                <div class="loading" id="loading">
+                    <div class="loading-spinner"></div>
+                    <p>Processing your request...</p>
+                </div>
+
+                <div class="chat-input-area">
+                    <div class="chat-controls">
+                        <button class="control-btn" id="adaptive-mode-btn">🎯 Adaptive Mode</button>
+                        <button class="control-btn" id="practice-mode-btn">✏️ Practice Mode</button>
+                        <button class="control-btn" id="review-mode-btn">📖 Review Mode</button>
+                    </div>
+                    
+                    <form class="chat-form" id="chat-form">
+                        <input 
+                            type="text" 
+                            class="chat-input" 
+                            id="user-input" 
+                            placeholder="Ask a question or type 'help' for guidance..."
+                            disabled
+                        >
+                        <button type="submit" class="send-btn" disabled>
+                            Send
+                            <span>→</span>
+                        </button>
+                    </form>
+                </div>
+            </div>
         </div>
     </div>
-    
-    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+
+    <script>
+        // State management
+        let currentState = {
+            topic: null,
+            index: null,
+            namespace: null,
+            grade: null,
+            board: null,
+            language: 'english',
+            subtopic: null,
+            methodPreference: null,
+            excludeMethods: [],
+            mode: 'normal', // normal, adaptive, practice, review
+            performance: {
+                mastery: 0.75,
+                questionsAnswered: 0,
+                correctAnswers: 0
+            }
+        };
+
+        // Subtopic configurations
+        const subtopicConfig = {
+            'quadratic_equations': {
+                'patterns_introduction': {
+                    name: 'Patterns & Square Numbers',
+                    methods: ['visual_patterns', 'number_sequences']
+                },
+                'factorization_method': {
+                    name: 'Factorization Methods',
+                    methods: ['simple_factoring', 'splitting_middle_term', 'grouping']
+                },
+                'formula_method': {
+                    name: 'Quadratic Formula',
+                    methods: ['derivation', 'application', 'discriminant_analysis']
+                },
+                'completing_square': {
+                    name: 'Completing the Square',
+                    methods: ['geometric_interpretation', 'algebraic_method']
+                },
+                'applications': {
+                    name: 'Real-world Applications',
+                    methods: ['physics_problems', 'optimization', 'geometry']
+                }
+            },
+            'digestive_system': {
+                'anatomy_structure': {
+                    name: 'Anatomical Structure',
+                    methods: ['organs', 'tissues', 'cellular_structure']
+                },
+                'digestion_process': {
+                    name: 'Digestion Process',
+                    methods: ['mechanical_digestion', 'chemical_digestion', 'peristalsis']
+                },
+                'enzymes_secretions': {
+                    name: 'Enzymes & Secretions',
+                    methods: ['digestive_enzymes', 'hormonal_control', 'pH_regulation']
+                },
+                'absorption_transport': {
+                    name: 'Absorption & Transport',
+                    methods: ['villi_function', 'nutrient_transport', 'water_absorption']
+                },
+                'disorders_health': {
+                    name: 'Health & Disorders',
+                    methods: ['common_disorders', 'prevention', 'dietary_management']
+                }
+            }
+        };
+
+        // DOM elements
+        const topicCards = document.querySelectorAll('.topic-card');
+        const academicSelector = document.querySelector('.academic-selector');
+        const boardSelect = document.getElementById('board-select');
+        const gradeSelect = document.getElementById('grade-select');
+        const languageSelect = document.getElementById('language-select');
+        const subtopicSelector = document.querySelector('.subtopic-selector');
+        const subtopicOptions = document.getElementById('subtopic-options');
+        const methodPreferences = document.querySelector('.method-preferences');
+        const methodTags = document.getElementById('method-tags');
+        const excludeAdvanced = document.getElementById('exclude-advanced');
+        const chatForm = document.getElementById('chat-form');
+        const userInput = document.getElementById('user-input');
+        const sendBtn = document.querySelector('.send-btn');
+        const chatMessages = document.getElementById('chat-messages');
+        const loading = document.getElementById('loading');
+        const performanceTracker = document.getElementById('performance-tracker');
+        const masteryLevel = document.getElementById('mastery-level');
+        const questionCount = document.getElementById('question-count');
+        const learningPathBtn = document.getElementById('learning-path-btn');
+        
+        // Context badges
+        const selectedTopicBadge = document.getElementById('selected-topic');
+        const selectedGradeBadge = document.getElementById('selected-grade');
+        const selectedBoardBadge = document.getElementById('selected-board');
+        const selectedSubtopicBadge = document.getElementById('selected-subtopic');
+        
+        // Mode buttons
+        const adaptiveModeBtn = document.getElementById('adaptive-mode-btn');
+        const practiceModeBtn = document.getElementById('practice-mode-btn');
+        const reviewModeBtn = document.getElementById('review-mode-btn');
+
+        // Topic selection
+        topicCards.forEach(card => {
+            card.addEventListener('click', function() {
+                topicCards.forEach(c => c.classList.remove('selected'));
+                this.classList.add('selected');
+                
+                currentState.topic = this.dataset.topic;
+                currentState.index = this.dataset.index;
+                currentState.namespace = this.dataset.namespace;
+                
+                const topicName = this.querySelector('h3').textContent.trim();
+                selectedTopicBadge.textContent = topicName;
+                
+                populateSubtopics(currentState.topic);
+                academicSelector.style.display = 'block';
+                subtopicSelector.style.display = 'block';
+                
+                resetSelections();
+            });
+        });
+
+        // Board selection
+        boardSelect.addEventListener('change', function() {
+            currentState.board = this.value;
+            if (currentState.board) {
+                selectedBoardBadge.textContent = currentState.board;
+                selectedBoardBadge.style.display = 'inline-block';
+                
+                // Update language options based on board
+                if (currentState.board === 'SSC') {
+                    languageSelect.querySelector('option[value="marathi"]').style.display = 'block';
+                } else {
+                    languageSelect.querySelector('option[value="marathi"]').style.display = 'none';
+                    if (currentState.language === 'marathi') {
+                        languageSelect.value = 'english';
+                        currentState.language = 'english';
+                    }
+                }
+                
+                checkReadiness();
+            }
+        });
+
+        // Grade selection
+        gradeSelect.addEventListener('change', function() {
+            currentState.grade = parseInt(this.value);
+            if (currentState.grade) {
+                selectedGradeBadge.textContent = `Grade ${currentState.grade}`;
+                selectedGradeBadge.style.display = 'inline-block';
+                
+                // Show/hide method preferences based on grade
+                updateMethodPreferences();
+                checkReadiness();
+            }
+        });
+
+        // Language selection
+        languageSelect.addEventListener('change', function() {
+            currentState.language = this.value;
+        });
+
+        // Populate subtopics
+        function populateSubtopics(topic) {
+            subtopicOptions.innerHTML = '';
+            const subtopics = subtopicConfig[topic] || {};
+            
+            Object.entries(subtopics).forEach(([key, config]) => {
+                const btn = document.createElement('button');
+                btn.className = 'subtopic-btn';
+                btn.dataset.subtopic = key;
+                btn.textContent = config.name;
+                btn.addEventListener('click', selectSubtopic);
+                subtopicOptions.appendChild(btn);
+            });
+        }
+
+        // Subtopic selection
+        function selectSubtopic(e) {
+            const btn = e.target;
+            const subtopic = btn.dataset.subtopic;
+            
+            // Toggle selection
+            if (btn.classList.contains('selected')) {
+                btn.classList.remove('selected');
+                currentState.subtopic = null;
+                selectedSubtopicBadge.style.display = 'none';
+            } else {
+                document.querySelectorAll('.subtopic-btn').forEach(b => b.classList.remove('selected'));
+                btn.classList.add('selected');
+                currentState.subtopic = subtopic;
+                selectedSubtopicBadge.textContent = btn.textContent;
+                selectedSubtopicBadge.style.display = 'inline-block';
+            }
+            
+            updateMethodPreferences();
+        }
+
+        // Update method preferences
+        function updateMethodPreferences() {
+            if (!currentState.topic || !currentState.subtopic || !currentState.grade) {
+                methodPreferences.style.display = 'none';
+                return;
+            }
+            
+            methodPreferences.style.display = 'block';
+            methodTags.innerHTML = '';
+            
+            const subtopic = subtopicConfig[currentState.topic][currentState.subtopic];
+            if (subtopic && subtopic.methods) {
+                subtopic.methods.forEach(method => {
+                    const tag = document.createElement('span');
+                    tag.className = 'method-tag';
+                    tag.textContent = method.replace(/_/g, ' ');
+                    tag.dataset.method = method;
+                    tag.addEventListener('click', selectMethod);
+                    methodTags.appendChild(tag);
+                });
+            }
+        }
+
+        // Method selection
+        function selectMethod(e) {
+            const tag = e.target;
+            const method = tag.dataset.method;
+            
+            if (tag.classList.contains('selected')) {
+                tag.classList.remove('selected');
+                currentState.methodPreference = null;
+            } else {
+                document.querySelectorAll('.method-tag').forEach(t => t.classList.remove('selected'));
+                tag.classList.add('selected');
+                currentState.methodPreference = method;
+            }
+        }
+
+        // Exclude advanced methods
+        excludeAdvanced.addEventListener('change', function() {
+            if (this.checked) {
+                currentState.excludeMethods = ['advanced', 'complex', 'proof'];
+            } else {
+                currentState.excludeMethods = [];
+            }
+        });
+
+        // Mode selection
+        [adaptiveModeBtn, practiceModeBtn, reviewModeBtn].forEach(btn => {
+            btn.addEventListener('click', function() {
+                document.querySelectorAll('.control-btn').forEach(b => b.classList.remove('active'));
+                this.classList.add('active');
+                
+                if (this === adaptiveModeBtn) {
+                    currentState.mode = 'adaptive';
+                    performanceTracker.style.display = 'flex';
+                } else if (this === practiceModeBtn) {
+                    currentState.mode = 'practice';
+                } else {
+                    currentState.mode = 'review';
+                }
+                
+                updateChatPlaceholder();
+            });
+        });
+
+        // Check if ready to chat
+        function checkReadiness() {
+            if (currentState.topic && currentState.board && currentState.grade) {
+                userInput.disabled = false;
+                sendBtn.disabled = false;
+                learningPathBtn.style.display = 'block';
+                updateChatPlaceholder();
+                
+                // Add welcome message for the specific configuration
+                const welcomeMsg = `Ready to learn ${currentState.topic.replace('_', ' ')} for Grade ${currentState.grade} ${currentState.board} board! What would you like to know?`;
+                addMessage('assistant', welcomeMsg);
+            }
+        }
+
+        // Update chat placeholder
+        function updateChatPlaceholder() {
+            let placeholder = `Ask about ${currentState.topic?.replace('_', ' ') || 'your topic'}`;
+            
+            if (currentState.mode === 'adaptive') {
+                placeholder = "I'll adapt to your level. Start with any question...";
+            } else if (currentState.mode === 'practice') {
+                placeholder = "Ask for practice problems or exercises...";
+            } else if (currentState.mode === 'review') {
+                placeholder = "What would you like to review?";
+            }
+            
+            userInput.placeholder = placeholder;
+        }
+
+        // Chat form submission
+        chatForm.addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const message = userInput.value.trim();
+            if (!message || !currentState.topic || !currentState.board || !currentState.grade) return;
+            
+            // Add user message
+            addMessage('user', message);
+            
+            // Clear input
+            userInput.value = '';
+            
+            // Show loading
+            loading.classList.add('active');
+            
+            try {
+                // Build request based on mode
+                let endpoint = '/api/chat';
+                const requestBody = {
+                    message: message,
+                    topic: currentState.topic,
+                    grade: currentState.grade,
+                    board: currentState.board,
+                    language: currentState.language
+                };
+                
+                if (currentState.subtopic) {
+                    requestBody.subtopic = currentState.subtopic;
+                }
+                
+                if (currentState.methodPreference) {
+                    requestBody.method_preference = currentState.methodPreference;
+                }
+                
+                if (currentState.excludeMethods.length > 0) {
+                    requestBody.exclude_methods = currentState.excludeMethods;
+                }
+                
+                if (currentState.mode === 'adaptive') {
+                    endpoint = '/api/adaptive-content';
+                    requestBody.performance = currentState.performance.mastery;
+                }
+                
+                const response = await fetch(endpoint, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(requestBody)
+                });
+                
+                const data = await response.json();
+                
+                if (data.error) {
+                    addMessage('assistant', `Error: ${data.error}`);
+                } else {
+                    // Update performance tracking
+                    currentState.performance.questionsAnswered++;
+                    questionCount.textContent = currentState.performance.questionsAnswered;
+                    
+                    // Add response with metadata
+                    addMessage('assistant', data.answer || 'Here\'s what I found:', data.content_metadata);
+                }
+            } catch (error) {
+                addMessage('assistant', `Error: ${error.message}`);
+            } finally {
+                loading.classList.remove('active');
+                chatMessages.scrollTop = chatMessages.scrollHeight;
+            }
+        });
+
+        // Learning path button
+        learningPathBtn.addEventListener('click', async function() {
+            if (!currentState.topic || !currentState.board || !currentState.grade) return;
+            
+            loading.classList.add('active');
+            
+            try {
+                const response = await fetch('/api/learning-path', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        topic: currentState.topic,
+                        grade: currentState.grade,
+                        board: currentState.board,
+                        current_subtopic: currentState.subtopic,
+                        mastery_level: currentState.performance.mastery
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (data.error) {
+                    addMessage('assistant', `Error: ${data.error}`);
+                } else {
+                    const pathMessage = formatLearningPath(data);
+                    addMessage('assistant', pathMessage);
+                }
+            } catch (error) {
+                addMessage('assistant', `Error: ${error.message}`);
+            } finally {
+                loading.classList.remove('active');
+                chatMessages.scrollTop = chatMessages.scrollHeight;
+            }
+        });
+
+        // Add message to chat
+        function addMessage(role, content, metadata = null) {
+            const messageDiv = document.createElement('div');
+            messageDiv.classList.add('message', role);
+            
+            const contentDiv = document.createElement('div');
+            contentDiv.classList.add('message-content');
+            
+            if (typeof content === 'string') {
+                contentDiv.innerHTML = formatMessageContent(content);
+            } else if (Array.isArray(content)) {
+                // Handle adaptive content array
+                contentDiv.innerHTML = formatAdaptiveContent(content);
+            }
+            
+            messageDiv.appendChild(contentDiv);
+            
+            // Add metadata if available
+            if (metadata && Array.isArray(metadata) && metadata.length > 0) {
+                const metaDiv = document.createElement('div');
+                metaDiv.classList.add('message-meta');
+                
+                const infoDiv = document.createElement('div');
+                infoDiv.classList.add('content-info');
+                
+                metadata.forEach(meta => {
+                    if (meta.content_type) {
+                        const tag = document.createElement('span');
+                        tag.classList.add('content-tag');
+                        tag.textContent = meta.content_type.replace(/_/g, ' ');
+                        infoDiv.appendChild(tag);
+                    }
+                    if (meta.difficulty_level) {
+                        const tag = document.createElement('span');
+                        tag.classList.add('content-tag');
+                        tag.style.background = 'var(--warning-color)';
+                        tag.textContent = `Level ${meta.difficulty_level}`;
+                        infoDiv.appendChild(tag);
+                    }
+                });
+                
+                metaDiv.appendChild(infoDiv);
+                messageDiv.appendChild(metaDiv);
+            }
+            
+            chatMessages.appendChild(messageDiv);
+        }
+
+        // Format message content
+        function formatMessageContent(content) {
+            content = content.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+            content = content.replace(/\*(.*?)\*/g, '<em>$1</em>');
+            content = content.replace(/\n/g, '<br>');
+            content = content.replace(/(\d+)\.\s+(.+?)(?=<br>|$)/g, '<br>$1. $2');
+            content = content.replace(/^[\-•]\s+(.+?)(?=<br>|$)/gm, '<br>• $1');
+            return content;
+        }
+
+        // Format adaptive content
+        function formatAdaptiveContent(contentArray) {
+            let html = '<strong>Adaptive Content for You:</strong><br><br>';
+            
+            contentArray.forEach((item, index) => {
+                html += `<div style="margin-bottom: 1rem; padding: 0.5rem; background: rgba(94, 114, 228, 0.05); border-radius: 8px;">`;
+                html += `<strong>${index + 1}. ${item.content_type?.replace(/_/g, ' ') || 'Content'}</strong><br>`;
+                html += `<span style="font-size: 0.85rem; color: var(--text-secondary);">`;
+                html += `Difficulty: ${item.difficulty_level || 'N/A'} | `;
+                html += `Time: ${item.estimated_time_minutes || '15'} mins`;
+                html += `</span><br>`;
+                html += `<div style="margin-top: 0.5rem;">${item.text?.substring(0, 200)}...</div>`;
+                html += `</div>`;
+            });
+            
+            return html;
+        }
+
+        // Format learning path
+        function formatLearningPath(data) {
+            let content = `<strong>📚 Your Personalized Learning Path</strong><br><br>`;
+            
+            content += `<strong>Current Status:</strong><br>`;
+            content += `• Topic: ${data.current_subtopic || 'Starting'}<br>`;
+            content += `• Grade: ${data.current_grade}<br>`;
+            content += `• Board: ${data.board}<br>`;
+            content += `• Mastery: ${(data.mastery_level * 100).toFixed(0)}%<br><br>`;
+            
+            content += `<strong>Recommendation:</strong> ${data.recommendation}<br><br>`;
+            
+            if (data.next_steps && data.next_steps.length > 0) {
+                content += `<strong>Next Steps:</strong><br>`;
+                data.next_steps.forEach(step => {
+                    content += `• Focus on: ${step.subtopic} (${step.focus})<br>`;
+                    if (step.prerequisites_to_review && step.prerequisites_to_review.length > 0) {
+                        content += `  Review: ${step.prerequisites_to_review.join(', ')}<br>`;
+                    }
+                });
+            }
+            
+            if (data.remediation && data.remediation.length > 0) {
+                content += `<br><strong>⚠️ Remediation Needed:</strong><br>`;
+                content += `Review these concepts: ${data.remediation.join(', ')}`;
+            }
+            
+            return content;
+        }
+
+        // Reset selections
+        function resetSelections() {
+            boardSelect.value = '';
+            gradeSelect.value = '';
+            languageSelect.value = 'english';
+            currentState.board = null;
+            currentState.grade = null;
+            currentState.subtopic = null;
+            currentState.methodPreference = null;
+            currentState.excludeMethods = [];
+            selectedGradeBadge.style.display = 'none';
+            selectedBoardBadge.style.display = 'none';
+            selectedSubtopicBadge.style.display = 'none';
+            methodPreferences.style.display = 'none';
+            userInput.disabled = true;
+            sendBtn.disabled = true;
+            learningPathBtn.style.display = 'none';
+        }
+
+        // Initialize
+        userInput.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                chatForm.dispatchEvent(new Event('submit'));
+            }
+        });
+
+        // Help command
+        userInput.addEventListener('input', function(e) {
+            if (this.value.toLowerCase() === 'help') {
+                const helpText = `
+                <strong>Available Commands:</strong><br>
+                • "practice" - Get practice problems<br>
+                • "explain [concept]" - Get detailed explanation<br>
+                • "example" - See worked examples<br>
+                • "quiz me" - Test your knowledge<br>
+                • "summary" - Get topic summary<br>
+                • "prerequisites" - What you need to know<br>
+                • "next steps" - What to learn next
+                `;
+                addMessage('assistant', helpText);
+                this.value = '';
+            }
+        });
+    </script>
 </body>
 </html>
