@@ -481,6 +481,12 @@
             transform: translateY(-1px);
         }
 
+        .send-btn:disabled {
+            background: var(--border-color);
+            cursor: not-allowed;
+            transform: none;
+        }
+
         .loading {
             display: none;
             text-align: center;
@@ -959,8 +965,10 @@
                     performanceTracker.style.display = 'flex';
                 } else if (this === practiceModeBtn) {
                     currentState.mode = 'practice';
+                    performanceTracker.style.display = 'none';
                 } else {
                     currentState.mode = 'review';
+                    performanceTracker.style.display = 'none';
                 }
                 
                 updateChatPlaceholder();
@@ -996,12 +1004,20 @@
             userInput.placeholder = placeholder;
         }
 
-        // Chat form submission
+        // FIXED Chat form submission
         chatForm.addEventListener('submit', async function(e) {
             e.preventDefault();
             
             const message = userInput.value.trim();
-            if (!message || !currentState.topic || !currentState.board || !currentState.grade) return;
+            if (!message || !currentState.topic || !currentState.board || !currentState.grade) {
+                console.log('Missing required fields:', {
+                    message: !!message,
+                    topic: !!currentState.topic, 
+                    board: !!currentState.board,
+                    grade: !!currentState.grade
+                });
+                return;
+            }
             
             // Add user message
             addMessage('user', message);
@@ -1013,7 +1029,8 @@
             loading.classList.add('active');
             
             try {
-                // Build request based on mode
+                // Always use chat endpoint for regular questions
+                // Only use adaptive-content for explicit adaptive requests
                 let endpoint = '/api/chat';
                 const requestBody = {
                     message: message,
@@ -1023,6 +1040,7 @@
                     language: currentState.language
                 };
                 
+                // Add optional parameters
                 if (currentState.subtopic) {
                     requestBody.subtopic = currentState.subtopic;
                 }
@@ -1035,10 +1053,23 @@
                     requestBody.exclude_methods = currentState.excludeMethods;
                 }
                 
-                if (currentState.mode === 'adaptive') {
+                // Only use adaptive endpoint for explicit adaptive content requests
+                const isAdaptiveRequest = (
+                    currentState.mode === 'adaptive' && 
+                    (message.toLowerCase().includes('adaptive') || 
+                     message.toLowerCase().includes('recommend content') || 
+                     message.toLowerCase().includes('suggest content') ||
+                     message.toLowerCase().includes('personalized content'))
+                );
+                
+                if (isAdaptiveRequest) {
                     endpoint = '/api/adaptive-content';
                     requestBody.performance = currentState.performance.mastery;
+                    delete requestBody.message; // Adaptive endpoint doesn't need message
                 }
+                
+                console.log('Sending request to:', endpoint);
+                console.log('Request body:', requestBody);
                 
                 const response = await fetch(endpoint, {
                     method: 'POST',
@@ -1048,20 +1079,74 @@
                     body: JSON.stringify(requestBody)
                 });
                 
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    throw new Error(`HTTP ${response.status}: ${errorText}`);
+                }
+                
                 const data = await response.json();
+                console.log('Response received:', data);
                 
                 if (data.error) {
-                    addMessage('assistant', `Error: ${data.error}`);
+                    addMessage('assistant', `I encountered an error: ${data.error}`);
+                    
+                    // If it's a missing fields error, provide helpful guidance
+                    if (data.error.includes('Missing required fields')) {
+                        addMessage('assistant', 'Please make sure you have selected a topic, board, and grade from the sidebar before asking questions.');
+                    }
                 } else {
                     // Update performance tracking
                     currentState.performance.questionsAnswered++;
                     questionCount.textContent = currentState.performance.questionsAnswered;
                     
-                    // Add response with metadata
-                    addMessage('assistant', data.answer || 'Here\'s what I found:', data.content_metadata);
+                    // Handle different response types
+                    if (endpoint === '/api/adaptive-content') {
+                        // Handle adaptive content response
+                        if (data.adaptive_content && data.adaptive_content.length > 0) {
+                            addMessage('assistant', data.adaptive_content, null, true);
+                        } else {
+                            addMessage('assistant', 'No adaptive content found for your current level. Let me provide a general explanation instead.');
+                            
+                            // Fallback to regular chat
+                            const fallbackResponse = await fetch('/api/chat', {
+                                method: 'POST',
+                                headers: {
+                                    'Content-Type': 'application/json'
+                                },
+                                body: JSON.stringify({
+                                    message: message,
+                                    topic: currentState.topic,
+                                    grade: currentState.grade,
+                                    board: currentState.board,
+                                    language: currentState.language,
+                                    subtopic: currentState.subtopic
+                                })
+                            });
+                            
+                            if (fallbackResponse.ok) {
+                                const fallbackData = await fallbackResponse.json();
+                                if (fallbackData.answer) {
+                                    addMessage('assistant', fallbackData.answer, fallbackData.content_metadata);
+                                }
+                            }
+                        }
+                    } else {
+                        // Handle regular chat response
+                        if (data.answer) {
+                            addMessage('assistant', data.answer, data.content_metadata);
+                        } else if (data.suggestions && data.suggestions.length > 0) {
+                            const suggestionsText = "I couldn't find specific content for your query. Here are some suggestions:\n\n" + 
+                                                  data.suggestions.map(s => `• ${s}`).join('\n');
+                            addMessage('assistant', suggestionsText);
+                        } else {
+                            // Fallback response
+                            addMessage('assistant', "I'm having trouble finding relevant content for your question. Could you try rephrasing it or selecting a more specific subtopic?");
+                        }
+                    }
                 }
             } catch (error) {
-                addMessage('assistant', `Error: ${error.message}`);
+                console.error('Chat error:', error);
+                addMessage('assistant', `I encountered an error: ${error.message}. Please try again.`);
             } finally {
                 loading.classList.remove('active');
                 chatMessages.scrollTop = chatMessages.scrollHeight;
@@ -1105,19 +1190,21 @@
             }
         });
 
-        // Add message to chat
-        function addMessage(role, content, metadata = null) {
+        // IMPROVED: Add message function with better adaptive content handling
+        function addMessage(role, content, metadata = null, isAdaptiveContent = false) {
             const messageDiv = document.createElement('div');
             messageDiv.classList.add('message', role);
             
             const contentDiv = document.createElement('div');
             contentDiv.classList.add('message-content');
             
-            if (typeof content === 'string') {
-                contentDiv.innerHTML = formatMessageContent(content);
-            } else if (Array.isArray(content)) {
+            if (isAdaptiveContent && Array.isArray(content)) {
                 // Handle adaptive content array
                 contentDiv.innerHTML = formatAdaptiveContent(content);
+            } else if (typeof content === 'string') {
+                contentDiv.innerHTML = formatMessageContent(content);
+            } else {
+                contentDiv.innerHTML = 'Unable to display content';
             }
             
             messageDiv.appendChild(contentDiv);
@@ -1144,13 +1231,23 @@
                         tag.textContent = `Level ${meta.difficulty_level}`;
                         infoDiv.appendChild(tag);
                     }
+                    if (meta.subtopic) {
+                        const tag = document.createElement('span');
+                        tag.classList.add('content-tag');
+                        tag.style.background = 'var(--info-color)';
+                        tag.textContent = meta.subtopic.replace(/_/g, ' ');
+                        infoDiv.appendChild(tag);
+                    }
                 });
                 
-                metaDiv.appendChild(infoDiv);
-                messageDiv.appendChild(metaDiv);
+                if (infoDiv.children.length > 0) {
+                    metaDiv.appendChild(infoDiv);
+                    messageDiv.appendChild(metaDiv);
+                }
             }
             
             chatMessages.appendChild(messageDiv);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
         }
 
         // Format message content
@@ -1163,20 +1260,42 @@
             return content;
         }
 
-        // Format adaptive content
+        // IMPROVED: Format adaptive content with better structure
         function formatAdaptiveContent(contentArray) {
-            let html = '<strong>Adaptive Content for You:</strong><br><br>';
+            let html = '<strong>📚 Adaptive Content Recommendations:</strong><br><br>';
             
             contentArray.forEach((item, index) => {
-                html += `<div style="margin-bottom: 1rem; padding: 0.5rem; background: rgba(94, 114, 228, 0.05); border-radius: 8px;">`;
-                html += `<strong>${index + 1}. ${item.content_type?.replace(/_/g, ' ') || 'Content'}</strong><br>`;
-                html += `<span style="font-size: 0.85rem; color: var(--text-secondary);">`;
-                html += `Difficulty: ${item.difficulty_level || 'N/A'} | `;
-                html += `Time: ${item.estimated_time_minutes || '15'} mins`;
-                html += `</span><br>`;
-                html += `<div style="margin-top: 0.5rem;">${item.text?.substring(0, 200)}...</div>`;
+                html += `<div style="margin-bottom: 1rem; padding: 1rem; background: rgba(94, 114, 228, 0.05); border-left: 4px solid var(--primary-color); border-radius: 8px;">`;
+                html += `<strong>${index + 1}. ${item.content_type?.replace(/_/g, ' ') || 'Learning Content'}</strong>`;
+                
+                if (item.subtopic) {
+                    html += ` <span style="color: var(--info-color); font-size: 0.9em;">(${item.subtopic.replace(/_/g, ' ')})</span>`;
+                }
+                
+                html += `<br>`;
+                html += `<div style="font-size: 0.85rem; color: var(--text-secondary); margin: 0.5rem 0;">`;
+                html += `📊 Difficulty: Level ${item.difficulty_level || 'N/A'} | `;
+                html += `⏱️ Time: ${item.estimated_time_minutes || '15'} mins | `;
+                html += `🎯 Board: ${item.board || 'General'}`;
+                html += `</div>`;
+                
+                if (item.text) {
+                    const preview = item.text.length > 300 ? item.text.substring(0, 300) + '...' : item.text;
+                    html += `<div style="margin-top: 0.5rem; padding: 0.5rem; background: white; border-radius: 4px; font-size: 0.9rem;">`;
+                    html += formatMessageContent(preview);
+                    html += `</div>`;
+                }
+                
+                if (item.method_tags && item.method_tags.length > 0) {
+                    html += `<div style="margin-top: 0.5rem;">`;
+                    html += `<small style="color: var(--text-secondary);">Methods: ${item.method_tags.join(', ')}</small>`;
+                    html += `</div>`;
+                }
+                
                 html += `</div>`;
             });
+            
+            html += `<br><em style="color: var(--text-secondary); font-size: 0.9rem;">💡 These recommendations are tailored to your current performance level.</em>`;
             
             return html;
         }
@@ -1228,6 +1347,7 @@
             userInput.disabled = true;
             sendBtn.disabled = true;
             learningPathBtn.style.display = 'none';
+            performanceTracker.style.display = 'none';
         }
 
         // Initialize
@@ -1249,7 +1369,8 @@
                 • "quiz me" - Test your knowledge<br>
                 • "summary" - Get topic summary<br>
                 • "prerequisites" - What you need to know<br>
-                • "next steps" - What to learn next
+                • "next steps" - What to learn next<br>
+                • "adaptive content" - Get personalized recommendations
                 `;
                 addMessage('assistant', helpText);
                 this.value = '';
