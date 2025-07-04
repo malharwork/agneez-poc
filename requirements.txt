@@ -1,10 +1,9 @@
 flask
 flask-cors
 anthropic
-pypdf
 sentence-transformers
-faiss-cpu
+pinecone
 python-dotenv
-langchain
-langchain-anthropic
 numpy
+torch
+transformers
