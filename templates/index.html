@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Adaptive Learning Assistant - Enhanced with Progress Tracking</title>
+    <title>Educational RAG System</title>
     <style>
         :root {
             --primary-color: #5e72e4;
@@ -15,8 +15,6 @@
             --text-primary: #32325d;
             --text-secondary: #8898aa;
             --border-color: #dee2e6;
-            --success-color: #2dce89;
-            --danger-color: #f5365c;
         }
 
         * {
@@ -61,7 +59,7 @@
 
         .main-content {
             display: grid;
-            grid-template-columns: 350px 1fr 300px;
+            grid-template-columns: 350px 1fr;
             gap: 1.5rem;
             animation: slideUp 0.8s ease-out;
         }
@@ -76,29 +74,16 @@
             overflow-y: auto;
         }
 
-        .progress-panel {
-            background: white;
-            border-radius: 15px;
-            padding: 1.5rem;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
-            height: fit-content;
-            max-height: calc(100vh - 120px);
-            overflow-y: auto;
-        }
-
-        .sidebar::-webkit-scrollbar,
-        .progress-panel::-webkit-scrollbar {
+        .sidebar::-webkit-scrollbar {
             width: 6px;
         }
 
-        .sidebar::-webkit-scrollbar-track,
-        .progress-panel::-webkit-scrollbar-track {
+        .sidebar::-webkit-scrollbar-track {
             background: var(--light);
             border-radius: 3px;
         }
 
-        .sidebar::-webkit-scrollbar-thumb,
-        .progress-panel::-webkit-scrollbar-thumb {
+        .sidebar::-webkit-scrollbar-thumb {
             background: var(--border-color);
             border-radius: 3px;
         }
@@ -115,7 +100,6 @@
             margin-bottom: 1rem;
             cursor: pointer;
             transition: all 0.3s ease;
-            position: relative;
         }
 
         .topic-card:hover {
@@ -155,20 +139,6 @@
             background: linear-gradient(135deg, var(--secondary-color), #20c997);
             color: white;
         }
-
-        .mastery-indicator {
-            position: absolute;
-            top: 0.5rem;
-            right: 0.5rem;
-            font-size: 0.8rem;
-            padding: 0.2rem 0.5rem;
-            border-radius: 12px;
-            font-weight: 500;
-        }
-
-        .mastery-low { background: #ffeaa7; color: #d63031; }
-        .mastery-medium { background: #fdcb6e; color: #e17055; }
-        .mastery-high { background: #00b894; color: white; }
 
         .academic-selector {
             background: var(--light);
@@ -252,104 +222,6 @@
             border-color: var(--info-color);
         }
 
-        .progress-summary {
-            margin-bottom: 1.5rem;
-        }
-
-        .progress-card {
-            background: var(--light);
-            padding: 1rem;
-            border-radius: 8px;
-            margin-bottom: 1rem;
-            border-left: 4px solid var(--primary-color);
-        }
-
-        .progress-stat {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 0.5rem;
-        }
-
-        .progress-stat:last-child {
-            margin-bottom: 0;
-        }
-
-        .stat-label {
-            font-size: 0.85rem;
-            color: var(--text-secondary);
-        }
-
-        .stat-value {
-            font-weight: 600;
-            color: var(--primary-color);
-        }
-
-        .topic-progress {
-            margin-bottom: 1.5rem;
-        }
-
-        .topic-progress-item {
-            background: white;
-            padding: 0.8rem;
-            border-radius: 6px;
-            margin-bottom: 0.5rem;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-        }
-
-        .topic-name {
-            font-weight: 500;
-            font-size: 0.85rem;
-            margin-bottom: 0.3rem;
-        }
-
-        .progress-bar {
-            width: 100%;
-            height: 6px;
-            background: var(--light);
-            border-radius: 3px;
-            overflow: hidden;
-        }
-
-        .progress-fill {
-            height: 100%;
-            background: linear-gradient(90deg, var(--primary-color), var(--info-color));
-            transition: width 0.3s ease;
-        }
-
-        .recommendations {
-            margin-bottom: 1.5rem;
-        }
-
-        .recommendation-item {
-            background: rgba(94, 114, 228, 0.05);
-            padding: 0.8rem;
-            border-radius: 6px;
-            margin-bottom: 0.5rem;
-            border-left: 3px solid var(--primary-color);
-        }
-
-        .recommendation-item.high-priority {
-            border-left-color: var(--danger-color);
-            background: rgba(245, 54, 92, 0.05);
-        }
-
-        .recommendation-item.medium-priority {
-            border-left-color: var(--warning-color);
-            background: rgba(251, 99, 64, 0.05);
-        }
-
-        .rec-title {
-            font-weight: 500;
-            font-size: 0.8rem;
-            margin-bottom: 0.2rem;
-        }
-
-        .rec-description {
-            font-size: 0.75rem;
-            color: var(--text-secondary);
-        }
-
         .chat-area {
             background: white;
             border-radius: 15px;
@@ -364,7 +236,6 @@
             border-bottom: 1px solid var(--border-color);
             background: linear-gradient(135deg, var(--light), white);
             border-radius: 15px 15px 0 0;
-            position: relative;
         }
 
         .current-context {
@@ -385,30 +256,6 @@
         .grade-badge { background: var(--secondary-color); color: white; }
         .board-badge { background: var(--warning-color); color: white; }
         .subtopic-badge { background: var(--info-color); color: white; }
-
-        .session-info {
-            position: absolute;
-            top: 1rem;
-            right: 1rem;
-            display: flex;
-            align-items: center;
-            gap: 1rem;
-            background: rgba(255, 255, 255, 0.9);
-            padding: 0.4rem 0.8rem;
-            border-radius: 15px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-            font-size: 0.8rem;
-        }
-
-        .session-timer {
-            color: var(--primary-color);
-            font-weight: 500;
-        }
-
-        .mastery-display {
-            color: var(--secondary-color);
-            font-weight: 500;
-        }
 
         .chat-messages {
             flex: 1;
@@ -468,41 +315,6 @@
             font-size: 0.65rem;
         }
 
-        .interaction-feedback {
-            margin-top: 0.5rem;
-            display: flex;
-            gap: 0.5rem;
-            align-items: center;
-        }
-
-        .feedback-btn {
-            padding: 0.3rem 0.6rem;
-            border: 1px solid var(--border-color);
-            background: white;
-            border-radius: 12px;
-            cursor: pointer;
-            font-size: 0.7rem;
-            transition: all 0.2s ease;
-        }
-
-        .feedback-btn:hover {
-            background: var(--primary-color);
-            color: white;
-            border-color: var(--primary-color);
-        }
-
-        .feedback-btn.success {
-            background: var(--success-color);
-            color: white;
-            border-color: var(--success-color);
-        }
-
-        .feedback-btn.error {
-            background: var(--danger-color);
-            color: white;
-            border-color: var(--danger-color);
-        }
-
         .chat-input-area {
             padding: 1.2rem;
             border-top: 1px solid var(--border-color);
@@ -514,7 +326,6 @@
             display: flex;
             gap: 0.4rem;
             margin-bottom: 0.8rem;
-            flex-wrap: wrap;
         }
 
         .control-btn {
@@ -603,50 +414,6 @@
             margin: 0 auto 1rem;
         }
 
-        .analytics-toggle {
-            margin-bottom: 1rem;
-        }
-
-        .toggle-btn {
-            width: 100%;
-            padding: 0.6rem;
-            background: var(--primary-color);
-            color: white;
-            border: none;
-            border-radius: 8px;
-            cursor: pointer;
-            font-size: 0.8rem;
-            transition: all 0.2s ease;
-        }
-
-        .toggle-btn:hover {
-            background: #4c63d2;
-        }
-
-        .analytics-panel {
-            display: none;
-            margin-top: 1rem;
-        }
-
-        .analytics-panel.active {
-            display: block;
-        }
-
-        .chart-container {
-            background: white;
-            padding: 1rem;
-            border-radius: 8px;
-            margin-bottom: 1rem;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-        }
-
-        .chart-title {
-            font-size: 0.8rem;
-            font-weight: 500;
-            margin-bottom: 0.5rem;
-            color: var(--dark);
-        }
-
         @keyframes fadeIn {
             from { opacity: 0; }
             to { opacity: 1; }
@@ -666,16 +433,6 @@
         @keyframes spin {
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
-        }
-
-        @media (max-width: 1200px) {
-            .main-content {
-                grid-template-columns: 300px 1fr;
-            }
-            
-            .progress-panel {
-                display: none;
-            }
         }
 
         @media (max-width: 768px) {
@@ -705,8 +462,8 @@
 <body>
     <div class="container">
         <header>
-            <h1>🎓 Adaptive Learning Assistant</h1>
-            <p>Enhanced with AI-powered progress tracking and personalized learning paths</p>
+            <h1>🎓 Educational RAG System</h1>
+            <p>AI-powered educational assistance with board and grade-appropriate content</p>
         </header>
 
         <div class="main-content">
@@ -715,15 +472,13 @@
                 <div class="topic-selector">
                     <h3>Choose a Topic</h3>
                     <div class="topic-card" data-topic="quadratic_equations" data-index="math_index" data-namespace="algebra_quadratic_equations">
-                        <div class="mastery-indicator mastery-low" id="quad-mastery">0%</div>
                         <h3>
                             <span class="topic-icon math-icon">∑</span>
                             Quadratic Equations
                         </h3>
-                        <p>Master quadratic equations with adaptive learning</p>
+                        <p>Learn to solve quadratic equations with different methods</p>
                     </div>
                     <div class="topic-card" data-topic="digestive_system" data-index="science_index" data-namespace="biology_digestive_system">
-                        <div class="mastery-indicator mastery-low" id="digest-mastery">0%</div>
                         <h3>
                             <span class="topic-icon bio-icon">🧬</span>
                             Digestive System
@@ -777,10 +532,6 @@
                         <!-- Dynamically populated -->
                     </div>
                 </div>
-
-                <button class="control-btn" id="learning-path-btn" style="width: 100%; margin-top: 1rem; display: none;">
-                    📚 View Learning Path
-                </button>
             </div>
 
             <!-- Main Chat Area -->
@@ -793,25 +544,20 @@
                         <span class="context-badge board-badge" id="selected-board" style="display: none;">Board -</span>
                         <span class="context-badge subtopic-badge" id="selected-subtopic" style="display: none;">All subtopics</span>
                     </div>
-                    
-                    <div class="session-info" id="session-info" style="display: none;">
-                        <div class="session-timer" id="session-timer">00:00</div>
-                        <div class="mastery-display" id="mastery-display">Mastery: 0%</div>
-                    </div>
                 </div>
 
                 <div class="chat-messages" id="chat-messages">
                     <div class="message assistant">
                         <div class="message-content">
-                            👋 Welcome to the Enhanced Adaptive Learning System! 
+                            👋 Welcome to the Educational RAG System! 
                             <br><br>
-                            🎯 <strong>New Features:</strong><br>
-                            • Real-time progress tracking<br>
-                            • Personalized learning recommendations<br>
-                            • Adaptive content based on your performance<br>
-                            • Detailed analytics and insights<br>
+                            I can help you learn about:
                             <br>
-                            Select a topic and configure your academic details to get started with your personalized learning journey!
+                            • Quadratic Equations
+                            <br>
+                            • The Digestive System
+                            <br><br>
+                            Select a topic, board, and grade to begin!
                         </div>
                     </div>
                 </div>
@@ -823,10 +569,9 @@
 
                 <div class="chat-input-area">
                     <div class="chat-controls">
-                        <button class="control-btn" id="adaptive-mode-btn">🎯 Adaptive Mode</button>
-                        <button class="control-btn" id="practice-mode-btn">✏️ Practice Mode</button>
-                        <button class="control-btn" id="review-mode-btn">📖 Review Mode</button>
-                        <button class="control-btn" id="progress-btn">📊 View Progress</button>
+                        <button class="control-btn" id="adaptive-mode-btn">🎯 Adaptive</button>
+                        <button class="control-btn" id="practice-mode-btn">✏️ Practice</button>
+                        <button class="control-btn" id="learning-path-btn">📚 Learning Path</button>
                     </div>
                     
                     <form class="chat-form" id="chat-form">
@@ -844,60 +589,11 @@
                     </form>
                 </div>
             </div>
-
-            <!-- Right Progress Panel -->
-            <div class="progress-panel">
-                <div class="progress-summary">
-                    <h3>📊 Your Progress</h3>
-                    <div class="progress-card">
-                        <div class="progress-stat">
-                            <span class="stat-label">Questions Answered</span>
-                            <span class="stat-value" id="total-questions">0</span>
-                        </div>
-                        <div class="progress-stat">
-                            <span class="stat-label">Overall Accuracy</span>
-                            <span class="stat-value" id="overall-accuracy">0%</span>
-                        </div>
-                        <div class="progress-stat">
-                            <span class="stat-label">Study Time</span>
-                            <span class="stat-value" id="study-time">0h</span>
-                        </div>
-                        <div class="progress-stat">
-                            <span class="stat-label">Topics Attempted</span>
-                            <span class="stat-value" id="topics-attempted">0</span>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="topic-progress">
-                    <h3>📈 Topic Mastery</h3>
-                    <div id="topic-progress-list">
-                        <!-- Dynamically populated -->
-                    </div>
-                </div>
-
-                <div class="recommendations">
-                    <h3>💡 Recommendations</h3>
-                    <div id="recommendations-list">
-                        <div class="recommendation-item">
-                            <div class="rec-title">Get Started</div>
-                            <div class="rec-description">Select a topic and start learning to see personalized recommendations!</div>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="analytics-toggle">
-                    <button class="toggle-btn" id="analytics-toggle">View Detailed Analytics</button>
-                    <div class="analytics-panel" id="analytics-panel">
-                        <!-- Analytics content will be populated here -->
-                    </div>
-                </div>
-            </div>
         </div>
     </div>
 
     <script>
-        // Enhanced state management with progress tracking
+        // State management
         let currentState = {
             topic: null,
             index: null,
@@ -908,29 +604,10 @@
             subtopic: null,
             methodPreference: null,
             excludeMethods: [],
-            mode: 'normal',
-            sessionId: null,
-            sessionStartTime: null,
-            performance: {
-                mastery: 0,
-                questionsAnswered: 0,
-                correctAnswers: 0
-            }
+            mode: 'normal'
         };
 
-        // Progress tracking variables
-        let progressData = {
-            student_info: {},
-            overall_stats: {},
-            topic_progress: {},
-            recent_activity: [],
-            learning_recommendations: {}
-        };
-
-        // Session timer
-        let sessionTimer = null;
-
-        // Subtopic configurations (same as before)
+        // Subtopic configurations
         const subtopicConfig = {
             'quadratic_equations': {
                 'patterns_introduction': {
@@ -999,28 +676,12 @@
         const selectedBoardBadge = document.getElementById('selected-board');
         const selectedSubtopicBadge = document.getElementById('selected-subtopic');
         
-        // Progress elements
-        const sessionInfo = document.getElementById('session-info');
-        const sessionTimerEl = document.getElementById('session-timer');
-        const masteryDisplayEl = document.getElementById('mastery-display');
-        const totalQuestionsEl = document.getElementById('total-questions');
-        const overallAccuracyEl = document.getElementById('overall-accuracy');
-        const studyTimeEl = document.getElementById('study-time');
-        const topicsAttemptedEl = document.getElementById('topics-attempted');
-        const topicProgressList = document.getElementById('topic-progress-list');
-        const recommendationsList = document.getElementById('recommendations-list');
-        
         // Mode buttons
         const adaptiveModeBtn = document.getElementById('adaptive-mode-btn');
         const practiceModeBtn = document.getElementById('practice-mode-btn');
-        const reviewModeBtn = document.getElementById('review-mode-btn');
-        const progressBtn = document.getElementById('progress-btn');
-        const analyticsToggle = document.getElementById('analytics-toggle');
-        const analyticsPanel = document.getElementById('analytics-panel');
 
         // Initialize the application
         document.addEventListener('DOMContentLoaded', function() {
-            loadProgressData();
             setupEventListeners();
         });
 
@@ -1040,8 +701,6 @@
             // Mode buttons
             adaptiveModeBtn.addEventListener('click', () => setMode('adaptive'));
             practiceModeBtn.addEventListener('click', () => setMode('practice'));
-            reviewModeBtn.addEventListener('click', () => setMode('review'));
-            progressBtn.addEventListener('click', showDetailedProgress);
 
             // Chat form
             chatForm.addEventListener('submit', handleChatSubmit);
@@ -1054,9 +713,6 @@
 
             // Learning path button
             learningPathBtn.addEventListener('click', showLearningPath);
-
-            // Analytics toggle
-            analyticsToggle.addEventListener('click', toggleAnalytics);
         }
 
         function selectTopic(card) {
@@ -1074,7 +730,6 @@
             academicSelector.style.display = 'block';
             subtopicSelector.style.display = 'block';
             
-            updateTopicMastery();
             resetSelections();
         }
 
@@ -1095,7 +750,6 @@
                     }
                 }
                 
-                updateStudentProfile();
                 checkReadiness();
             }
         }
@@ -1106,34 +760,12 @@
                 selectedGradeBadge.textContent = `Grade ${currentState.grade}`;
                 selectedGradeBadge.style.display = 'inline-block';
                 
-                updateStudentProfile();
                 checkReadiness();
             }
         }
 
         function updateLanguage() {
             currentState.language = languageSelect.value;
-            updateStudentProfile();
-        }
-
-        function updateStudentProfile() {
-            if (currentState.grade && currentState.board) {
-                fetch('/api/student/profile', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        grade: currentState.grade,
-                        board: currentState.board,
-                        language: currentState.language
-                    })
-                })
-                .then(response => response.json())
-                .then(data => {
-                    console.log('Profile updated:', data);
-                    loadProgressData();
-                })
-                .catch(console.error);
-            }
         }
 
         function populateSubtopics(topic) {
@@ -1174,170 +806,11 @@
             
             if (mode === 'adaptive') {
                 adaptiveModeBtn.classList.add('active');
-                startLearningSession();
             } else if (mode === 'practice') {
                 practiceModeBtn.classList.add('active');
-            } else if (mode === 'review') {
-                reviewModeBtn.classList.add('active');
             }
             
             updateChatPlaceholder();
-        }
-
-        function startLearningSession() {
-            fetch('/api/session/start', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({})
-            })
-            .then(response => response.json())
-            .then(data => {
-                currentState.sessionId = data.session_id;
-                currentState.sessionStartTime = Date.now();
-                sessionInfo.style.display = 'flex';
-                startSessionTimer();
-            })
-            .catch(console.error);
-        }
-
-        function startSessionTimer() {
-            sessionTimer = setInterval(() => {
-                const elapsed = Math.floor((Date.now() - currentState.sessionStartTime) / 1000);
-                const minutes = Math.floor(elapsed / 60);
-                const seconds = elapsed % 60;
-                sessionTimerEl.textContent = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
-            }, 1000);
-        }
-
-        function endLearningSession() {
-            if (currentState.sessionId) {
-                fetch('/api/session/end', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        topics_covered: currentState.topic ? [currentState.topic] : []
-                    })
-                })
-                .then(() => {
-                    currentState.sessionId = null;
-                    currentState.sessionStartTime = null;
-                    sessionInfo.style.display = 'none';
-                    if (sessionTimer) {
-                        clearInterval(sessionTimer);
-                        sessionTimer = null;
-                    }
-                })
-                .catch(console.error);
-            }
-        }
-
-        function loadProgressData() {
-            fetch('/api/student/progress')
-                .then(response => response.json())
-                .then(data => {
-                    if (!data.error) {
-                        progressData = data;
-                        updateProgressDisplay();
-                        updateTopicMastery();
-                    }
-                })
-                .catch(console.error);
-        }
-
-        function updateProgressDisplay() {
-            if (progressData.overall_stats) {
-                totalQuestionsEl.textContent = progressData.overall_stats.total_questions || 0;
-                overallAccuracyEl.textContent = progressData.overall_stats.overall_accuracy || '0%';
-                studyTimeEl.textContent = progressData.overall_stats.total_time_hours || '0h';
-                topicsAttemptedEl.textContent = progressData.overall_stats.topics_attempted || 0;
-            }
-
-            // Update topic progress list
-            if (progressData.topic_progress) {
-                topicProgressList.innerHTML = '';
-                Object.entries(progressData.topic_progress).forEach(([topic, data]) => {
-                    const item = document.createElement('div');
-                    item.className = 'topic-progress-item';
-                    item.innerHTML = `
-                        <div class="topic-name">${topic.replace('_', ' ').toUpperCase()}</div>
-                        <div class="progress-bar">
-                            <div class="progress-fill" style="width: ${(data.mastery_level * 100)}%"></div>
-                        </div>
-                        <div style="font-size: 0.7rem; color: var(--text-secondary); margin-top: 0.2rem;">
-                            ${(data.mastery_level * 100).toFixed(1)}% mastery • ${data.total_attempts} attempts
-                        </div>
-                    `;
-                    topicProgressList.appendChild(item);
-                });
-            }
-
-            // Update recommendations
-            if (progressData.learning_recommendations && progressData.learning_recommendations.priority_actions) {
-                recommendationsList.innerHTML = '';
-                progressData.learning_recommendations.priority_actions.forEach(rec => {
-                    const item = document.createElement('div');
-                    item.className = `recommendation-item ${rec.urgency}-priority`;
-                    item.innerHTML = `
-                        <div class="rec-title">${rec.action.replace('_', ' ').toUpperCase()}</div>
-                        <div class="rec-description">${rec.description}</div>
-                    `;
-                    recommendationsList.appendChild(item);
-                });
-            }
-
-            // Update mastery display in session info
-            if (currentState.topic && progressData.topic_progress[currentState.topic]) {
-                const mastery = (progressData.topic_progress[currentState.topic].mastery_level * 100).toFixed(1);
-                masteryDisplayEl.textContent = `Mastery: ${mastery}%`;
-            }
-        }
-
-        function updateTopicMastery() {
-            if (progressData.topic_progress) {
-                // Update quadratic equations mastery
-                const quadMastery = progressData.topic_progress.quadratic_equations;
-                if (quadMastery) {
-                    const quadMasteryEl = document.getElementById('quad-mastery');
-                    const masteryPercent = (quadMastery.mastery_level * 100).toFixed(0);
-                    quadMasteryEl.textContent = `${masteryPercent}%`;
-                    
-                    if (masteryPercent < 60) {
-                        quadMasteryEl.className = 'mastery-indicator mastery-low';
-                    } else if (masteryPercent < 80) {
-                        quadMasteryEl.className = 'mastery-indicator mastery-medium';
-                    } else {
-                        quadMasteryEl.className = 'mastery-indicator mastery-high';
-                    }
-                }
-
-                // Update digestive system mastery
-                const digestMastery = progressData.topic_progress.digestive_system;
-                if (digestMastery) {
-                    const digestMasteryEl = document.getElementById('digest-mastery');
-                    const masteryPercent = (digestMastery.mastery_level * 100).toFixed(0);
-                    digestMasteryEl.textContent = `${masteryPercent}%`;
-                    
-                    if (masteryPercent < 60) {
-                        digestMasteryEl.className = 'mastery-indicator mastery-low';
-                    } else if (masteryPercent < 80) {
-                        digestMasteryEl.className = 'mastery-indicator mastery-medium';
-                    } else {
-                        digestMasteryEl.className = 'mastery-indicator mastery-high';
-                    }
-                }
-            }
-        }
-
-        function checkReadiness() {
-            if (currentState.topic && currentState.board && currentState.grade) {
-                userInput.disabled = false;
-                sendBtn.disabled = false;
-                learningPathBtn.style.display = 'block';
-                updateChatPlaceholder();
-                
-                const welcomeMsg = `Ready to learn ${currentState.topic.replace('_', ' ')} for Grade ${currentState.grade} ${currentState.board} board! 🚀`;
-                addMessage('assistant', welcomeMsg);
-            }
         }
 
         function updateChatPlaceholder() {
@@ -1347,8 +820,6 @@
                 placeholder = "🎯 Adaptive mode: I'll adjust to your level. Ask anything!";
             } else if (currentState.mode === 'practice') {
                 placeholder = "✏️ Practice mode: Ask for problems or exercises...";
-            } else if (currentState.mode === 'review') {
-                placeholder = "📖 Review mode: What would you like to review?";
             }
             
             userInput.placeholder = placeholder;
@@ -1395,7 +866,6 @@
                 
                 if (isAdaptiveRequest) {
                     endpoint = '/api/adaptive-content';
-                    requestBody.performance = currentState.performance.mastery;
                     delete requestBody.message;
                 }
                 
@@ -1414,8 +884,6 @@
                 if (data.error) {
                     addMessage('assistant', `I encountered an error: ${data.error}`);
                 } else {
-                    currentState.performance.questionsAnswered++;
-                    
                     if (endpoint === '/api/adaptive-content') {
                         if (data.adaptive_content && data.adaptive_content.length > 0) {
                             addMessage('assistant', data.adaptive_content, null, true);
@@ -1424,18 +892,8 @@
                         }
                     } else {
                         if (data.answer) {
-                            const messageId = addMessage('assistant', data.answer, data.content_metadata);
-                            
-                            // Add interaction feedback for progress tracking
-                            if (data.content_metadata && data.content_metadata.length > 0) {
-                                addInteractionFeedback(messageId, data.content_metadata[0]);
-                            }
+                            addMessage('assistant', data.answer, data.content_metadata);
                         }
-                    }
-                    
-                    // Update progress display
-                    if (data.student_mastery) {
-                        masteryDisplayEl.textContent = `Mastery: ${data.student_mastery}`;
                     }
                 }
             } catch (error) {
@@ -1443,17 +901,12 @@
             } finally {
                 loading.classList.remove('active');
                 chatMessages.scrollTop = chatMessages.scrollHeight;
-                
-                // Refresh progress data after interaction
-                setTimeout(loadProgressData, 1000);
             }
         }
 
         function addMessage(role, content, metadata = null, isAdaptiveContent = false) {
             const messageDiv = document.createElement('div');
             messageDiv.classList.add('message', role);
-            const messageId = 'msg_' + Date.now();
-            messageDiv.id = messageId;
             
             const contentDiv = document.createElement('div');
             contentDiv.classList.add('message-content');
@@ -1505,56 +958,6 @@
             
             chatMessages.appendChild(messageDiv);
             chatMessages.scrollTop = chatMessages.scrollHeight;
-            
-            return messageId;
-        }
-
-        function addInteractionFeedback(messageId, metadata) {
-            const messageDiv = document.getElementById(messageId);
-            if (!messageDiv) return;
-            
-            const feedbackDiv = document.createElement('div');
-            feedbackDiv.classList.add('interaction-feedback');
-            feedbackDiv.innerHTML = `
-                <span style="font-size: 0.7rem; color: var(--text-secondary);">Was this helpful?</span>
-                <button class="feedback-btn" onclick="recordInteraction('${metadata.content_id}', true, '${currentState.topic}', '${metadata.subtopic || ''}')">👍 Yes</button>
-                <button class="feedback-btn" onclick="recordInteraction('${metadata.content_id}', false, '${currentState.topic}', '${metadata.subtopic || ''}')">👎 No</button>
-            `;
-            
-            messageDiv.appendChild(feedbackDiv);
-        }
-
-        function recordInteraction(contentId, success, topic, subtopic) {
-            fetch('/api/interaction/record', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    content_id: contentId,
-                    topic: topic,
-                    subtopic: subtopic,
-                    success: success,
-                    time_taken: Math.floor(Math.random() * 60) + 30, // Simulate time
-                    difficulty_level: 3,
-                    question_text: userInput.value || 'General question',
-                    user_answer: success ? 'Understood' : 'Confused'
-                })
-            })
-            .then(response => response.json())
-            .then(data => {
-                console.log('Interaction recorded:', data);
-                
-                // Update feedback buttons
-                event.target.classList.add(success ? 'success' : 'error');
-                const feedbackDiv = event.target.parentElement;
-                feedbackDiv.querySelectorAll('.feedback-btn').forEach(btn => {
-                    btn.disabled = true;
-                    btn.style.opacity = '0.6';
-                });
-                
-                // Refresh progress data
-                setTimeout(loadProgressData, 500);
-            })
-            .catch(console.error);
         }
 
         function formatMessageContent(content) {
@@ -1600,7 +1003,7 @@
                 html += `</div>`;
             });
             
-            html += `<br><em style="color: var(--text-secondary); font-size: 0.9rem;">💡 These recommendations are tailored to your current performance level.</em>`;
+            html += `<br><em style="color: var(--text-secondary); font-size: 0.9rem;">💡 These recommendations are tailored to your current level.</em>`;
             
             return html;
         }
@@ -1619,7 +1022,7 @@
                         grade: currentState.grade,
                         board: currentState.board,
                         current_subtopic: currentState.subtopic,
-                        mastery_level: currentState.performance.mastery
+                        mastery_level: 0.5 // Default middle mastery level
                     })
                 });
                 
@@ -1640,14 +1043,13 @@
         }
 
         function formatLearningPath(data) {
-            let content = `<strong>📚 Your Personalized Learning Path</strong><br><br>`;
+            let content = `<strong>📚 Your Learning Path</strong><br><br>`;
             
             content += `<strong>Current Status:</strong><br>`;
             content += `• Topic: ${data.current_subtopic || 'Starting'}<br>`;
             content += `• Grade: ${data.current_grade}<br>`;
             content += `• Board: ${data.board}<br>`;
-            content += `• Database Mastery: ${(data.database_mastery * 100).toFixed(0)}%<br>`;
-            content += `• Effective Mastery: ${(data.effective_mastery * 100).toFixed(0)}%<br><br>`;
+            content += `• Mastery Level: ${(data.mastery_level * 100).toFixed(0)}%<br><br>`;
             
             content += `<strong>Recommendation:</strong> ${data.recommendation}<br><br>`;
             
@@ -1661,13 +1063,6 @@
                 });
             }
             
-            if (data.personalized_recommendations && data.personalized_recommendations.priority_actions) {
-                content += `<br><strong>📈 Personalized Recommendations:</strong><br>`;
-                data.personalized_recommendations.priority_actions.forEach(rec => {
-                    content += `• ${rec.description}<br>`;
-                });
-            }
-            
             if (data.remediation && data.remediation.length > 0) {
                 content += `<br><strong>⚠️ Remediation Needed:</strong><br>`;
                 content += `Review these concepts: ${data.remediation.join(', ')}`;
@@ -1676,77 +1071,14 @@
             return content;
         }
 
-        function showDetailedProgress() {
-            const progressMessage = `
-                <strong>📊 Your Detailed Progress Report</strong><br><br>
+        function checkReadiness() {
+            if (currentState.topic && currentState.board && currentState.grade) {
+                userInput.disabled = false;
+                sendBtn.disabled = false;
+                updateChatPlaceholder();
                 
-                <strong>Overall Statistics:</strong><br>
-                • Total Questions: ${progressData.overall_stats?.total_questions || 0}<br>
-                • Overall Accuracy: ${progressData.overall_stats?.overall_accuracy || '0%'}<br>
-                • Study Time: ${progressData.overall_stats?.total_time_hours || '0h'}<br>
-                • Topics Attempted: ${progressData.overall_stats?.topics_attempted || 0}<br><br>
-                
-                <strong>Topic Progress:</strong><br>
-                ${Object.entries(progressData.topic_progress || {}).map(([topic, data]) => 
-                    `• ${topic.replace('_', ' ').toUpperCase()}: ${(data.mastery_level * 100).toFixed(1)}% mastery (${data.total_attempts} attempts)`
-                ).join('<br>')}<br><br>
-                
-                <strong>Recent Activity:</strong><br>
-                ${(progressData.recent_activity || []).slice(0, 5).map(activity => 
-                    `• ${activity.topic} - ${activity.success ? '✅' : '❌'} (${activity.timestamp})`
-                ).join('<br>')}
-            `;
-            
-            addMessage('assistant', progressMessage);
-        }
-
-        function toggleAnalytics() {
-            const panel = analyticsPanel;
-            if (panel.classList.contains('active')) {
-                panel.classList.remove('active');
-                analyticsToggle.textContent = 'View Detailed Analytics';
-            } else {
-                loadAnalytics();
-                panel.classList.add('active');
-                analyticsToggle.textContent = 'Hide Analytics';
-            }
-        }
-
-        async function loadAnalytics() {
-            try {
-                const response = await fetch('/api/student/analytics?days=30');
-                const data = await response.json();
-                
-                analyticsPanel.innerHTML = `
-                    <div class="chart-container">
-                        <div class="chart-title">📈 Daily Performance (Last 30 Days)</div>
-                        <div style="font-size: 0.8rem; color: var(--text-secondary);">
-                            ${data.daily_trend?.length || 0} active learning days
-                        </div>
-                    </div>
-                    
-                    <div class="chart-container">
-                        <div class="chart-title">⚡ Performance by Difficulty</div>
-                        ${(data.difficulty_breakdown || []).map(item => `
-                            <div style="display: flex; justify-content: space-between; margin-bottom: 0.3rem;">
-                                <span style="font-size: 0.8rem;">Level ${item.difficulty_level}</span>
-                                <span style="font-size: 0.8rem; font-weight: 500;">${(item.success_rate * 100).toFixed(1)}%</span>
-                            </div>
-                        `).join('')}
-                    </div>
-                    
-                    <div class="chart-container">
-                        <div class="chart-title">🕐 Best Learning Hours</div>
-                        ${(data.hourly_patterns || []).map(item => `
-                            <div style="display: flex; justify-content: space-between; margin-bottom: 0.3rem;">
-                                <span style="font-size: 0.8rem;">${item.hour}:00</span>
-                                <span style="font-size: 0.8rem; font-weight: 500;">${(item.accuracy * 100).toFixed(1)}%</span>
-                            </div>
-                        `).join('')}
-                    </div>
-                `;
-            } catch (error) {
-                analyticsPanel.innerHTML = '<div style="color: var(--danger-color); font-size: 0.8rem;">Error loading analytics</div>';
+                const welcomeMsg = `Ready to learn ${currentState.topic.replace('_', ' ')} for Grade ${currentState.grade} ${currentState.board} board! 🚀 What would you like to know?`;
+                addMessage('assistant', welcomeMsg);
             }
         }
 
@@ -1764,18 +1096,13 @@
             selectedSubtopicBadge.style.display = 'none';
             userInput.disabled = true;
             sendBtn.disabled = true;
-            learningPathBtn.style.display = 'none';
-            sessionInfo.style.display = 'none';
-            
-            // End any active session
-            endLearningSession();
         }
 
         // Help command handling
         userInput.addEventListener('input', function(e) {
             if (this.value.toLowerCase() === 'help') {
                 const helpText = `
-                <strong>🚀 Enhanced Learning Commands:</strong><br><br>
+                <strong>🚀 Educational RAG Commands:</strong><br><br>
                 
                 <strong>Basic Commands:</strong><br>
                 • "practice" - Get practice problems<br>
@@ -1784,34 +1111,19 @@
                 • "quiz me" - Test your knowledge<br>
                 • "summary" - Get topic summary<br><br>
                 
-                <strong>Progress Commands:</strong><br>
-                • "progress" - View your progress<br>
-                • "recommendations" - Get learning recommendations<br>
-                • "analytics" - View performance analytics<br>
-                • "mastery" - Check topic mastery levels<br><br>
-                
-                <strong>Adaptive Features:</strong><br>
-                • Switch to "Adaptive Mode" for personalized content<br>
+                <strong>Features:</strong><br>
+                • Switch to "Adaptive Mode" for level-appropriate content<br>
                 • Use "Practice Mode" for focused problem solving<br>
-                • Try "Review Mode" for concept revision<br><br>
+                • Use "Learning Path" button to see the recommended learning sequence<br><br>
                 
-                <strong>Progress Tracking:</strong><br>
-                • All your interactions are automatically tracked<br>
-                • Give feedback with 👍/👎 buttons to improve recommendations<br>
-                • View real-time mastery levels in the progress panel
+                <strong>Tips:</strong><br>
+                • Select a subtopic for more focused content<br>
+                • Specify what you're looking for (explanation, examples, problems)
                 `;
                 addMessage('assistant', helpText);
                 this.value = '';
             }
         });
-
-        // Auto-save progress when user leaves
-        window.addEventListener('beforeunload', function() {
-            endLearningSession();
-        });
-
-        // Load initial progress data when page loads
-        setTimeout(loadProgressData, 1000);
     </script>
 </body>
 </html>

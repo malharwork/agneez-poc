@@ -1,14 +1,12 @@
 import os
 import sys
 import logging
-import uuid
 from flask import Flask, render_template, request, jsonify, session
 from dotenv import load_dotenv
 from utils.content_generator import ContentGenerator
 from utils.embeddings import EmbeddingModel
 from utils.vectorstore import VectorStore
 from utils.rag import EducationalRAG
-from utils.progress_tracker import SQLiteProgressTracker, EnhancedEducationalRAG
 
 load_dotenv()
 
@@ -27,7 +25,6 @@ logging.getLogger('werkzeug').setLevel(logging.INFO)  # Flask server logs
 logging.getLogger('utils.embeddings').setLevel(logging.INFO)  # Embedding logs
 logging.getLogger('utils.vectorstore').setLevel(logging.INFO)  # Pinecone logs  
 logging.getLogger('utils.rag').setLevel(logging.INFO)  # RAG logs
-logging.getLogger('utils.progress_tracker').setLevel(logging.INFO)  # Progress logs
 
 # Suppress overly verbose logs but keep important ones
 logging.getLogger('urllib3').setLevel(logging.WARNING)
@@ -71,12 +68,7 @@ def is_topic_appropriate_for_grade(topic, grade):
     else:
         return True, f"This is an advanced topic for your grade level."
 
-def get_or_create_student_id():
-    if 'student_id' not in session:
-        session['student_id'] = f"student_{uuid.uuid4().hex[:12]}"
-    return session['student_id']
-
-print("🚀 Starting Enhanced Adaptive Learning Assistant with Progress Tracking...")
+print("🚀 Starting Educational RAG System...")
 
 try:
     embedding_model = EmbeddingModel(model_name='sentence-transformers/paraphrase-multilingual-mpnet-base-v2')
@@ -96,12 +88,10 @@ try:
         )
     }
     
-    progress_tracker = SQLiteProgressTracker("student_progress.db")
-    rag = EnhancedEducationalRAG(ANTHROPIC_API_KEY, vector_stores, embedding_model, progress_tracker)
+    rag = EducationalRAG(ANTHROPIC_API_KEY, vector_stores, embedding_model)
     content_generator = ContentGenerator()
     
     print("✅ Components initialized successfully")
-    print("📊 Progress tracking database ready")
 except Exception as e:
     print(f"❌ Initialization error: {e}")
 
@@ -220,6 +210,7 @@ def initialize_knowledge_base():
                             language = 'marathi'
                         
                         for grade in grades:
+                            import uuid
                             chunk = {
                                 'text': section['content'],
                                 'content_id': f"{topic_key}_{subtopic_key}_{sub_method}_{uuid.uuid4().hex[:8]}",
@@ -241,10 +232,7 @@ def initialize_knowledge_base():
                                 'problem_complexity': problem_complexity,
                                 'has_worked_solution': 'solution' in section['content'].lower() or 'example' in section['content'].lower(),
                                 'has_hints': 'hint' in section['content'].lower() or 'tip' in section['content'].lower(),
-                                'media_type': 'text_with_equations' if any(char in section['content'] for char in ['²', '×', '÷', '+', '-', '=']) else 'text_only',
-                                'average_success_rate': 0.75,
-                                'common_errors': _identify_common_errors(topic_key, subtopic_key),
-                                'adaptation_weight': 1.0
+                                'media_type': 'text_with_equations' if any(char in section['content'] for char in ['²', '×', '÷', '+', '-', '=']) else 'text_only'
                             }
                             all_chunks.append(chunk)
             
@@ -253,7 +241,7 @@ def initialize_knowledge_base():
                 vector_store.add_documents(embedded_chunks, namespace)
                 
     except Exception as e:
-        pass
+        logger.error(f"Error initializing knowledge base: {str(e)}")
 
 def _categorize_section_detailed(title, content, subtopics_config):
     title_lower = title.lower()
@@ -384,21 +372,6 @@ def _estimate_time(content_type, complexity):
     }
     return time_matrix.get(content_type, {}).get(complexity, 15)
 
-def _identify_common_errors(topic, subtopic):
-    error_map = {
-        'quadratic_equations': {
-            'factorization_method': ['sign_mistakes', 'calculation_errors', 'wrong_factors'],
-            'formula_method': ['calculation_errors', 'discriminant_mistakes', 'formula_memorization'],
-            'default': ['algebraic_manipulation', 'arithmetic_errors']
-        },
-        'digestive_system': {
-            'anatomy_structure': ['organ_sequence_errors', 'location_confusion'],
-            'digestion_process': ['process_order_errors', 'enzyme_function_confusion'],
-            'default': ['terminology_confusion', 'process_understanding']
-        }
-    }
-    return error_map.get(topic, {}).get(subtopic, error_map.get(topic, {}).get('default', []))
-
 with app.app_context():
     initialize_knowledge_base()
 
@@ -407,75 +380,6 @@ print("✅ System ready! Visit http://localhost:5000")
 @app.route('/')
 def index():
     return render_template('index.html')
-
-@app.route('/api/student/profile', methods=['POST'])
-def update_student_profile():
-    try:
-        data = request.json
-        student_id = get_or_create_student_id()
-        grade = data.get('grade')
-        board = data.get('board')
-        language = data.get('language', 'english')
-        
-        if not all([grade, board]):
-            return jsonify({'error': 'Grade and board are required'}), 400
-        
-        progress_tracker.create_or_update_student(student_id, grade, board, language)
-        
-        return jsonify({
-            'student_id': student_id,
-            'status': 'profile_updated',
-            'grade': grade,
-            'board': board,
-            'language': language
-        })
-        
-    except Exception as e:
-        return jsonify({'error': str(e)}), 500
-
-@app.route('/api/student/progress', methods=['GET'])
-def get_student_progress():
-    try:
-        student_id = get_or_create_student_id()
-        progress_summary = progress_tracker.get_student_progress_summary(student_id)
-        return jsonify(progress_summary)
-    except Exception as e:
-        return jsonify({'error': str(e)}), 500
-
-@app.route('/api/student/analytics', methods=['GET'])
-def get_student_analytics():
-    try:
-        student_id = get_or_create_student_id()
-        days = request.args.get('days', 30, type=int)
-        analytics = progress_tracker.get_performance_analytics(student_id, days)
-        return jsonify(analytics)
-    except Exception as e:
-        return jsonify({'error': str(e)}), 500
-
-@app.route('/api/session/start', methods=['POST'])
-def start_learning_session():
-    try:
-        student_id = get_or_create_student_id()
-        session_id = progress_tracker.start_learning_session(student_id)
-        session['learning_session_id'] = session_id
-        return jsonify({'session_id': session_id, 'status': 'session_started'})
-    except Exception as e:
-        return jsonify({'error': str(e)}), 500
-
-@app.route('/api/session/end', methods=['POST'])
-def end_learning_session():
-    try:
-        data = request.json
-        session_id = session.get('learning_session_id')
-        topics_covered = data.get('topics_covered', [])
-        
-        if session_id:
-            progress_tracker.end_learning_session(session_id, topics_covered)
-            session.pop('learning_session_id', None)
-        
-        return jsonify({'status': 'session_ended'})
-    except Exception as e:
-        return jsonify({'error': str(e)}), 500
 
 @app.route('/api/topics', methods=['GET'])
 def get_topics():
@@ -537,8 +441,134 @@ def chat():
                 'error': f'Missing required fields: {", ".join(missing_fields)}'
             }), 400
         
-        student_id = get_or_create_student_id()
-        progress_tracker.create_or_update_student(student_id, grade, board, language)
+        is_appropriate, grade_message = is_topic_appropriate_for_grade(topic, grade)
+        
+        if not is_appropriate:
+            topic_name = topic.replace('_', ' ').title()
+            response_message = f"""I understand you're curious about {topic_name}! 🌟
+            
+However, {topic_name} is typically taught in higher grades (usually starting from grade {GRADE_TOPIC_MAPPING[topic]['min_grade']}). 
+
+Right now, you're in grade {grade}, so it's perfectly normal that this topic hasn't been covered yet. Your teachers will introduce you to {topic_name} when you're ready for it in the coming years.
+
+Keep being curious about learning - that's wonderful! For now, you might want to focus on the topics that are part of your current grade curriculum. Is there anything else from your current studies that I can help you with?"""
+            
+            return jsonify({
+                'answer': response_message,
+                'grade_appropriate': False,
+                'recommended_grade': GRADE_TOPIC_MAPPING[topic]['min_grade'],
+                'current_grade': grade
+            })
+        
+        level = get_level_from_grade(grade)
+        
+        metadata_filter = {
+            'grade': grade,
+            'board': board,
+            'language': language
+        }
+        
+        if subtopic:
+            metadata_filter['subtopic'] = subtopic
+        
+        if method_preference:
+            metadata_filter['method_tags'] = method_preference
+        
+        response = rag.answer_educational_question(
+            question=message,
+            topic=topic,
+            metadata_filter=metadata_filter,
+            level=level
+        )
+        
+        if not response.get('content_metadata') or len(response.get('content_metadata', [])) == 0:
+            relaxed_filter = {
+                'grade': grade,
+                'board': board
+            }
+            
+            response = rag.answer_educational_question(
+                question=message,
+                topic=topic,
+                metadata_filter=relaxed_filter,
+                level=level
+            )
+        
+        response['grade_appropriate'] = True
+        response['grade_message'] = grade_message
+        
+        if not response.get('answer'):
+            response['answer'] = f"I found some information about {topic} for Grade {grade} {board}, but let me provide a general explanation based on your question about: {message}"
+        
+        return jsonify(response)
+        
+    except Exception as e:
+        return jsonify({
+            'error': f'Internal server error: {str(e)}',
+            'type': 'server_error'
+        }), 500
+
+@app.route('/api/adaptive-content', methods=['POST'])
+def get_adaptive_content():
+    try:
+        data = request.json
+        topic = data.get('topic', '')
+        grade = data.get('grade', 9)
+        board = data.get('board', 'CBSE')
+        subtopic = data.get('subtopic', '')
+        language = data.get('language', 'english')
+        
+        if not topic:
+            return jsonify({'error': 'Topic is required'}), 400
+        
+        is_appropriate, grade_message = is_topic_appropriate_for_grade(topic, grade)
+        
+        if not is_appropriate:
+            return jsonify({
+                'adaptive_content': [],
+                'grade_appropriate': False,
+                'message': f"This topic is typically taught in grade {GRADE_TOPIC_MAPPING[topic]['min_grade']} and above."
+            })
+        
+        base_filter = {
+            'grade': grade,
+            'board': board,
+            'language': language
+        }
+        
+        if subtopic:
+            base_filter['subtopic'] = subtopic
+        
+        response = rag.get_adaptive_content(topic, base_filter)
+        
+        response['grade_appropriate'] = True
+        return jsonify(response)
+        
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/lesson', methods=['POST'])
+def generate_lesson():
+    try:
+        data = request.json
+        message = data.get('message', '')
+        topic = data.get('topic', '')
+        board = data.get('board', '')
+        grade = data.get('grade', None)
+        subtopic = data.get('subtopic', None)
+        method_preference = data.get('method_preference', None)
+        exclude_methods = data.get('exclude_methods', [])
+        language = data.get('language', 'english')
+        
+        if not all([topic, board]) or grade is None:
+            missing_fields = []
+            if not topic: missing_fields.append('topic')
+            if not board: missing_fields.append('board')
+            if grade is None: missing_fields.append('grade')
+            
+            return jsonify({
+                'error': f'Missing required fields: {", ".join(missing_fields)}'
+            }), 400
         
         is_appropriate, grade_message = is_topic_appropriate_for_grade(topic, grade)
         
@@ -573,8 +603,11 @@ Keep being curious about learning - that's wonderful! For now, you might want to
         if method_preference:
             metadata_filter['method_tags'] = method_preference
         
-        response = rag.answer_educational_question_with_tracking(
-            student_id=student_id,
+        # If no specific message provided, generate a lesson overview for the topic
+        if not message:
+            message = f"Provide a comprehensive lesson on {topic.replace('_', ' ')} for grade {grade} {board} board students"
+        
+        response = rag.answer_educational_question(
             question=message,
             topic=topic,
             metadata_filter=metadata_filter,
@@ -587,8 +620,7 @@ Keep being curious about learning - that's wonderful! For now, you might want to
                 'board': board
             }
             
-            response = rag.answer_educational_question_with_tracking(
-                student_id=student_id,
+            response = rag.answer_educational_question(
                 question=message,
                 topic=topic,
                 metadata_filter=relaxed_filter,
@@ -598,9 +630,19 @@ Keep being curious about learning - that's wonderful! For now, you might want to
         response['grade_appropriate'] = True
         response['grade_message'] = grade_message
         
-        if not response.get('answer'):
-            response['answer'] = f"I found some information about {topic} for Grade {grade} {board}, but let me provide a general explanation based on your question about: {message}"
-        
+        # Add chapter and subject information based on topic
+        if topic == "quadratic_equations":
+            response['chapter'] = "Polynomials"
+            response['subject'] = "Mathematics"
+        elif topic == "digestive_system":
+            response['chapter'] = "Human Body Systems"
+            response['subject'] = "Biology"
+        else:
+            response['chapter'] = "General Knowledge"
+            response['subject'] = "Science"
+            
+        # The response will be transformed to lesson script format by the frontend
+        # You can return the raw RAG response or transform it here
         return jsonify(response)
         
     except Exception as e:
@@ -608,108 +650,6 @@ Keep being curious about learning - that's wonderful! For now, you might want to
             'error': f'Internal server error: {str(e)}',
             'type': 'server_error'
         }), 500
-
-@app.route('/api/interaction/record', methods=['POST'])
-def record_interaction():
-    try:
-        data = request.json
-        student_id = get_or_create_student_id()
-        
-        content_id = data.get('content_id', '')
-        topic = data.get('topic', '')
-        subtopic = data.get('subtopic', '')
-        success = data.get('success', True)
-        time_taken = data.get('time_taken', 0)
-        error_type = data.get('error_type', None)
-        difficulty_level = data.get('difficulty_level', None)
-        method_tags = data.get('method_tags', [])
-        question_text = data.get('question_text', '')
-        user_answer = data.get('user_answer', '')
-        
-        rag.record_student_interaction(
-            student_id=student_id,
-            content_id=content_id,
-            topic=topic,
-            success=success,
-            subtopic=subtopic,
-            time_taken=time_taken,
-            error_type=error_type,
-            difficulty_level=difficulty_level,
-            question_text=question_text,
-            user_answer=user_answer
-        )
-        
-        return jsonify({'status': 'interaction_recorded'})
-        
-    except Exception as e:
-        return jsonify({'error': str(e)}), 500
-
-@app.route('/api/adaptive-content', methods=['POST'])
-def get_adaptive_content():
-    try:
-        data = request.json
-        topic = data.get('topic', '')
-        current_performance = data.get('performance', 0.5)
-        grade = data.get('grade', 9)
-        board = data.get('board', 'CBSE')
-        subtopic = data.get('subtopic', '')
-        language = data.get('language', 'english')
-        
-        student_id = get_or_create_student_id()
-        
-        if not topic:
-            return jsonify({'error': 'Topic is required'}), 400
-        
-        is_appropriate, grade_message = is_topic_appropriate_for_grade(topic, grade)
-        
-        if not is_appropriate:
-            return jsonify({
-                'adaptive_content': [],
-                'grade_appropriate': False,
-                'message': f"This topic is typically taught in grade {GRADE_TOPIC_MAPPING[topic]['min_grade']} and above."
-            })
-        
-        current_mastery = progress_tracker.get_student_mastery(student_id, topic)
-        
-        base_filter = {
-            'grade': grade,
-            'board': board,
-            'language': language
-        }
-        
-        if subtopic:
-            base_filter['subtopic'] = subtopic
-        
-        response = rag.rag.get_adaptive_content(topic, base_filter)
-        
-        if response.get('adaptive_content'):
-            content = response['adaptive_content']
-            
-            effective_performance = max(current_mastery, current_performance)
-            
-            if effective_performance < 0.4:
-                filtered_content = [c for c in content if c.get('difficulty_level', 3) <= 2]
-            elif effective_performance > 0.8:
-                filtered_content = [c for c in content if c.get('difficulty_level', 3) >= 3]
-            else:
-                filtered_content = [c for c in content if 1 <= c.get('difficulty_level', 3) <= 4]
-            
-            if not filtered_content:
-                filtered_content = content[:3]
-            
-            response['adaptive_content'] = filtered_content[:5]
-            response['current_mastery'] = current_mastery
-            response['performance_adjusted'] = effective_performance
-        
-        if not response.get('adaptive_content'):
-            minimal_filter = {'board': board, 'grade': grade}
-            response = rag.rag.get_adaptive_content(topic, minimal_filter)
-        
-        response['grade_appropriate'] = True
-        return jsonify(response)
-        
-    except Exception as e:
-        return jsonify({'error': str(e)}), 500
 
 @app.route('/api/learning-path', methods=['POST'])
 def get_learning_path():
@@ -721,40 +661,14 @@ def get_learning_path():
         current_subtopic = data.get('current_subtopic', '')
         mastery_level = data.get('mastery_level', 0.5)
         
-        student_id = get_or_create_student_id()
-        
         if not all([topic, board]):
             return jsonify({'error': 'Missing required fields: topic and board'}), 400
         
-        actual_mastery = progress_tracker.get_student_mastery(student_id, topic)
-        effective_mastery = max(actual_mastery, mastery_level)
-        
-        path = rag.rag.generate_learning_path(
-            topic, grade, board, current_subtopic, effective_mastery
+        path = rag.generate_learning_path(
+            topic, grade, board, current_subtopic, mastery_level
         )
         
-        path['database_mastery'] = actual_mastery
-        path['effective_mastery'] = effective_mastery
-        
-        recommendations = progress_tracker.get_learning_recommendations(student_id)
-        path['personalized_recommendations'] = recommendations
-        
         return jsonify(path)
-        
-    except Exception as e:
-        return jsonify({'error': str(e)}), 500
-
-@app.route('/api/performance-update', methods=['POST'])
-def update_performance():
-    try:
-        data = request.json
-        content_id = data.get('content_id', '')
-        success = data.get('success', True)
-        error_type = data.get('error_type', None)
-        time_taken = data.get('time_taken', 0)
-        
-        rag.rag.update_performance_metrics(content_id, success, error_type, time_taken)
-        return jsonify({'status': 'updated'})
         
     except Exception as e:
         return jsonify({'error': str(e)}), 500

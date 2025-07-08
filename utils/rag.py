@@ -124,7 +124,7 @@ class EducationalRAG:
             
             sorted_results = sorted(
                 results,
-                key=lambda x: (x.get('difficulty_level', 3), -x.get('adaptation_weight', 1.0))
+                key=lambda x: (x.get('difficulty_level', 3), -0.5)
             )
             
             selected_content = []
@@ -146,8 +146,7 @@ class EducationalRAG:
             logger.error(f"Error getting adaptive content: {str(e)}")
             return {"error": str(e)}
     
-    def generate_learning_path(self, topic: str, grade: int, board: str, 
-                             current_subtopic: str = None, mastery_level: float = 0.5):
+    def generate_learning_path(self, topic: str, grade: int, board: str, current_subtopic: str = None, mastery_level: float = 0.5):
         """Generate a personalized learning path based on current progress."""
         try:
             learning_progressions = {
@@ -240,23 +239,6 @@ class EducationalRAG:
             
         except Exception as e:
             logger.error(f"Error generating learning path: {str(e)}")
-            return {"error": str(e)}
-    
-    def update_performance_metrics(self, content_id: str, success: bool, 
-                                 error_type: str = None, time_taken: int = 0):
-        """Update performance metrics for a specific content."""
-        try:
-            logger.info(f"Performance update for {content_id}: success={success}, error={error_type}, time={time_taken}")
-            
-            # In a production system, you would:
-            # 1. Fetch the current vector
-            # 2. Update its performance metadata
-            # 3. Re-index with updated metadata
-            
-            return {"status": "logged"}
-            
-        except Exception as e:
-            logger.error(f"Error updating performance metrics: {str(e)}")
             return {"error": str(e)}
     
     def _generate_educational_response(self, question: str, context: str, 
